@@ -1,0 +1,76 @@
+await rpc("hdg_close_night",{p_group_key:groupKey,p_state:state});
+  state=newNightState();
+  showScreen("welcomeScreen");
+}
+
+// Init
+GAMES.forEach(g=>{const o=document.createElement("option");o.value=g.id;o.textContent=g.name;el("gameSelect").appendChild(o);});
+el("gameSelect").onchange=renderRules;
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>activateTab(b.dataset.tab));
+
+el("loginBtn").onclick=async()=>{
+  el("loginError").textContent="";
+  try{
+    if(await verifyAccess(el("accessCodeInput").value)){
+      showScreen("welcomeScreen");
+    }else el("loginError").textContent="Wrong access code.";
+  }catch(e){el("loginError").textContent=e.message;}
+};
+el("accessCodeInput").addEventListener("keydown",e=>{if(e.key==="Enter")el("loginBtn").click();});
+
+el("logoutBtn").onclick=()=>{sessionStorage.removeItem("hdg_group_key");groupKey="";showScreen("loginScreen");};
+el("startControlBtn").onclick=async()=>{
+  try{
+    if(await loadLatestOpenNight()){
+      ensureMoney();updateTop();renderActivePlayers();showScreen("mainApp");activateTab("gameTab");showGameView("homeView");
+    }else{
+      state=newNightState();el("nightDate").textContent=state.date;el("roomCode").textContent=state.room;renderPlayersSetup();showScreen("nightSetupScreen");
+    }
+  }catch(e){alert(e.message);}
+};
+el("projectorBtn").onclick=startProjector;
+el("oldNightsBtn").onclick=()=>{showScreen("mainApp");activateTab("oldNightsTab");};
+el("projectorBackBtn").onclick=()=>{if(projectorTimer)clearInterval(projectorTimer);showScreen("welcomeScreen");};
+el("backWelcomeBtn").onclick=()=>showScreen("welcomeScreen");
+
+el("startNightBtn").onclick=async()=>{
+  if(state.players.length<2)return alert("Select at least 2 players.");
+  ensureMoney();await saveLive();updateTop();renderActivePlayers();renderMoney();renderStats();showScreen("mainApp");activateTab("gameTab");showGameView("homeView");
+};
+el("editPlayersBtn").onclick=()=>{el("nightDate").textContent=state.date;el("roomCode").textContent=state.room;renderPlayersSetup();showScreen("nightSetupScreen");};
+el("newNightFromArchiveBtn").onclick=()=>{state=newNightState();el("nightDate").textContent=state.date;el("roomCode").textContent=state.room;renderPlayersSetup();showScreen("nightSetupScreen");};
+el("newGameBtn").onclick=()=>{selectedRules=new Set();renderRules();showGameView("gameSetupView");};
+el("cancelGameBtn").onclick=()=>showGameView("homeView");
+el("startGameBtn").onclick=async()=>{
+  const g=GAMES.find(x=>x.id===el("gameSelect").value);
+  currentGame={name:g.name,rules:RULES.filter(r=>selectedRules.has(r.id)).map(r=>r.label),players:[...state.players]};
+  state.liveStatus="playing";state.liveGame={name:currentGame.name,rules:[...currentGame.rules]};state.liveWinner=null;await saveLive();
+  el("currentGameInfo").innerHTML=`<strong style="font-size:24px">${currentGame.name}</strong><div>${(currentGame.rules.length?currentGame.rules:["Regular"]).map(r=>`<span class="badge">${r}</span>`).join("")}</div><div>${state.players.map(p=>`<span class="badge">${p}</span>`).join("")}</div>`;
+  showGameView("currentGameView");
+};
+el("endGameBtn").onclick=()=>{
+  selectedWinners=new Set();const c=el("winnerList");c.innerHTML="";
+  currentGame.players.forEach(p=>{const b=document.createElement("button");b.className="winnerBtn";b.textContent=p;b.onclick=()=>{selectedWinners.has(p)?selectedWinners.delete(p):selectedWinners.add(p);b.classList.toggle("selected");};c.appendChild(b);});
+  showGameView("winnerView");
+};
+el("winnerBackBtn").onclick=()=>showGameView("currentGameView");
+el("saveWinnerBtn").onclick=async()=>{
+  if(!selectedWinners.size)return alert("Select at least one winner.");
+  const winners=[...selectedWinners];state.games.push({name:currentGame.name,rules:currentGame.rules,winners,players:[...currentGame.players]});
+  state.liveStatus="winner";state.liveWinner=winners;state.liveGame={name:currentGame.name,rules:[...currentGame.rules]};await saveLive();updateTop();renderStats();
+  if(winners.length===1){el("celebrationName").textContent=winners[0];el("celebration").classList.remove("hidden");fireworks();randomSound();}
+  else{setTimeout(async()=>{state.liveStatus="waiting";state.liveWinner=null;state.liveGame=null;await saveLive();},1800);showGameView("homeView");}
+};
+el("continueBtn").onclick=async()=>{el("celebration").classList.add("hidden");state.liveStatus="waiting";state.liveWinner=null;state.liveGame=null;await saveLive();showGameView("homeView");};
+el("shareWhatsAppBtn").onclick=shareWhatsApp;
+el("finishNightBtn").onclick=finishNight;
+
+// Restore login within current browser tab
+(async()=>{
+  const existing=sessionStorage.getItem("hdg_group_key");
+  if(existing){groupKey=existing;showScreen("welcomeScreen");}
+  else showScreen("loginScreen");
+})();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
+</script>
+</body>
