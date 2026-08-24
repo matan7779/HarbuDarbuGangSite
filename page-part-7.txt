@@ -1,1 +1,2 @@
 <script src="enhancements.js?v=15"></script>
+<script src="projector-easy.js?v=1"></script>
