@@ -1,0 +1,15 @@
+<!doctype html><html><meta charset="utf-8"><title>HDG Access Code Hash</title>
+<body style="font-family:Arial;max-width:700px;margin:40px auto;padding:20px">
+<h2>Harbu Darbu Gang - Access Code Hash</h2>
+<p>Type the access code you want. This page calculates SHA-256 locally in your browser.</p>
+<input id="x" style="width:100%;padding:10px;font-size:18px" placeholder="Access code">
+<button onclick="go()" style="margin-top:10px;padding:10px">Calculate Hash</button>
+<pre id="o" style="white-space:pre-wrap;word-break:break-all"></pre>
+<script>
+async function go(){
+ const v=document.getElementById('x').value;
+ const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
+ const h=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
+ document.getElementById('o').textContent=h;
+}
+</script></body></html>
