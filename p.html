@@ -1,1 +1,73 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Harbu Darbu Projector</title><meta http-equiv="refresh" content="0; url=./?projector=1"></head><body style="background:#111827;color:white;font-family:Arial;text-align:center;padding:40px">Opening projector…<script>location.replace('./?projector=1');</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>Harbu Darbu Projector</title>
+<style>
+html,body{margin:0;min-height:100%;background:#07111f;color:#f8fafc;font-family:Arial,Helvetica,sans-serif}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.wrap{width:min(1200px,96vw);text-align:center;padding:24px}
+.card{background:rgba(17,24,39,.96);border:1px solid rgba(148,163,184,.18);border-radius:28px;padding:42px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.title{font-size:clamp(44px,7vw,96px);font-weight:900;line-height:1.05;margin-bottom:20px}
+.rules{font-size:clamp(22px,3vw,40px);color:#fbbf24;margin-bottom:24px}
+.players{font-size:clamp(18px,2.2vw,30px);color:#cbd5e1}
+.room{font-size:clamp(22px,3vw,36px);color:#38bdf8;margin-top:14px}
+.trophy{font-size:clamp(72px,12vw,170px)}
+.winner{font-size:clamp(62px,10vw,150px);font-weight:900}
+.status{font-size:clamp(20px,2.4vw,34px);color:#cbd5e1;margin-top:18px}
+input,button{font:inherit;border:none;border-radius:14px}
+input{width:min(420px,85vw);padding:14px;text-align:center;font-size:22px;margin:16px 0;background:#fff;color:#111827}
+button{padding:14px 22px;font-weight:900;background:#f59e0b;color:#111827;cursor:pointer}
+.small{font-size:15px;color:#94a3b8;margin-top:12px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="loginBox">
+    <div class="title" style="font-size:clamp(36px,5vw,68px)">Harbu Darbu Gang</div>
+    <div class="status">Projector Display</div>
+    <input id="code" type="password" placeholder="Group access code" autocomplete="off">
+    <br><button id="connect">CONNECT</button>
+    <div id="loginMsg" class="small"></div>
+  </div>
+
+  <div class="card hidden" id="displayBox">
+    <div id="content"><div class="status">Connecting to current night…</div></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+const db=(window.HDG_SUPABASE_URL&&window.HDG_SUPABASE_KEY)?window.supabase.createClient(window.HDG_SUPABASE_URL,window.HDG_SUPABASE_KEY):null;
+let groupKey='';let timer=null;let room='';
+const $=id=>document.getElementById(id);
+async function sha256(text){const b=new TextEncoder().encode(text);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function rpc(name,args={}){if(!db)throw new Error('Supabase is not configured.');const {data,error}=await db.rpc(name,args);if(error)throw error;return data}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(s){
+  if(!s){$('content').innerHTML='<div class="status">Waiting for current night…</div>';return}
+  if(s.liveStatus==='winner'&&Array.isArray(s.liveWinner)&&s.liveWinner.length){
+    $('content').innerHTML=`<div class="trophy">🏆</div><div class="winner">${s.liveWinner.map(esc).join(' + ')}</div><div class="rules">${s.liveWinner.length>1?'SPLIT POT':'WINNER'}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+  }else if(s.liveGame){
+    $('content').innerHTML=`<div class="title">${esc(s.liveGame.name)}</div><div class="rules">${Array.isArray(s.liveGame.rules)&&s.liveGame.rules.length?s.liveGame.rules.map(esc).join(' · '):'Regular'}</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+  }else{
+    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+  }
+}
+async function startDisplay(){
+  const current=await rpc('hdg_get_open_night',{p_group_key:groupKey});
+  if(!current||!current.room){$('content').innerHTML='<div class="status">No active night yet.<br>Start the night on the phone, then this screen will connect automatically.</div>';room='';return}
+  room=String(current.room).trim().toUpperCase();
+  const s=await rpc('hdg_get_live',{p_group_key:groupKey,p_room_code:room});render(s||current);
+}
+async function loop(){try{await startDisplay()}catch(e){$('content').innerHTML=`<div class="status">${esc(e.message)}</div>`}}
+async function useKey(key){groupKey=key;localStorage.setItem('hdg_projector_group_key',key);$('loginBox').classList.add('hidden');$('displayBox').classList.remove('hidden');await loop();if(timer)clearInterval(timer);timer=setInterval(loop,1000)}
+$('connect').onclick=async()=>{try{$('loginMsg').textContent='Checking…';const key=await sha256($('code').value.trim());const ok=await rpc('hdg_check_group',{p_group_key:key});if(!ok){$('loginMsg').textContent='Wrong access code.';return}await useKey(key)}catch(e){$('loginMsg').textContent=e.message}};
+$('code').addEventListener('keydown',e=>{if(e.key==='Enter')$('connect').click()});
+(async()=>{const saved=localStorage.getItem('hdg_projector_group_key');if(saved){try{const ok=await rpc('hdg_check_group',{p_group_key:saved});if(ok){await useKey(saved);return}}catch(e){}}$('loginBox').classList.remove('hidden')})();
+</script>
+</body>
+</html>
