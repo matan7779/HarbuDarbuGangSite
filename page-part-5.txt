@@ -1,0 +1,81 @@
+        await loadOldNights();
+        }
+      };
+      c.appendChild(item);
+    });
+  }catch(e){
+    c.innerHTML=`<div class="card"><div class="loginError">${e.message}</div></div>`;
+  }
+}
+function renderArchiveDetails(n){
+  return `<table><tr><th>Player</th><th>Rebuys</th><th>Result</th></tr>${
+    n.players.map(p=>{
+      const rb=n.rebuys[p]||0,cost=rb*PRICE,cash=Number(n.cashout[p]||0),diff=cash-cost;
+      const result=diff>0?`+₪${diff}`:diff<0?`-₪${Math.abs(diff)}`:"₪0";
+      return `<tr><td>${p}</td><td>${rb} (₪${cost})</td><td>${result}</td></tr>`;
+    }).join("")
+  }</table><div style="margin-top:10px">${
+    n.games.map((g,i)=>`<div class="muted" style="padding:5px 0">${i+1}. <strong>${g.name}</strong> · ${g.rules.length?g.rules.join(", "):"Regular"} · Winner: ${g.winners.join(" + ")}</div>`).join("")
+  }</div>`;
+}
+
+function renderProjectorState(s){
+  let body="";
+  if(s.liveStatus==="winner" && s.liveWinner && s.liveWinner.length){
+    body=`<div class="projectorTrophy">🏆</div><div class="projectorWinner">${s.liveWinner.join(" + ")}</div><div class="projectorRules">${s.liveWinner.length>1?"SPLIT POT":"WINNER"}</div><div class="projectorRoom">Room ${s.room}</div>`;
+  }else if(s.liveGame){
+    body=`<div class="projectorTitle">${s.liveGame.name}</div><div class="projectorRules">${s.liveGame.rules.length?s.liveGame.rules.join(" · "):"Regular"}</div><div class="projectorPlayers">${s.players.join(" · ")}</div><div class="projectorRoom">Room ${s.room}</div>`;
+  }else{
+    body=`<div class="projectorTitle">Harbu Darbu Gang</div><div class="projectorRules">Waiting for next game...</div><div class="projectorPlayers">${(s.players||[]).join(" · ")}</div><div class="projectorRoom">Room ${s.room}</div>`;
+  }
+  el("projectorContent").innerHTML=body;
+}
+
+async function startProjector(){
+  const room=prompt("Enter room code", state.room || "");
+  if(!room)return;
+  showScreen("projectorScreen");
+  if(projectorTimer)clearInterval(projectorTimer);
+  const tick=async()=>{
+    try{
+      const s=await rpc("hdg_get_live",{p_group_key:groupKey,p_room_code:room.trim().toUpperCase()});
+      renderProjectorState(s||{room:room.trim().toUpperCase(),players:[],liveGame:null,liveWinner:null,liveStatus:"waiting"});
+    }catch(e){el("projectorContent").innerHTML=`<div class="projectorRules">${e.message}</div>`;}
+  };
+  await tick();
+  projectorTimer=setInterval(tick,1000);
+}
+
+function fireworks(){
+  const colors=["#f59e0b","#22c55e","#38bdf8","#f43f5e","#e879f9","#facc15"];
+  for(let i=0;i<70;i++){const p=document.createElement("div");p.className="firework";p.style.left=(20+Math.random()*60)+"%";p.style.top=(20+Math.random()*55)+"%";p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.setProperty("--x",((Math.random()-.5)*360)+"px");p.style.setProperty("--y",((Math.random()-.5)*360)+"px");document.body.appendChild(p);setTimeout(()=>p.remove(),1200);}
+}
+function randomSound(){
+  const choice=Math.floor(Math.random()*3);if(choice===2)return;
+  try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();for(let i=0;i<(choice===0?4:8);i++){const osc=ctx.createOscillator(),gain=ctx.createGain(),t=ctx.currentTime+i*(choice===0?.16:.09);osc.type=choice===0?"square":"triangle";osc.frequency.value=choice===0?140+Math.random()*140:260+Math.random()*160;gain.gain.setValueAtTime(.12,t);gain.gain.exponentialRampToValueAtTime(.001,t+.12);osc.connect(gain);gain.connect(ctx.destination);osc.start(t);osc.stop(t+.13);}}catch(e){}
+}
+
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.stroke();
+}
+async function createSettlementJpg(){
+  ensureMoney();
+  const rows=state.players.map(p=>{const rb=state.rebuys[p]||0,cost=rb*PRICE,cash=Number(state.cashout[p]||0),diff=cash-cost;return{name:p,rebuys:rb,cost,result:diff>0?`+₪${diff}`:diff<0?`-₪${Math.abs(diff)}`:"₪0"};});
+  const canvas=document.createElement("canvas"),width=1200,rowH=80,height=260+rows.length*rowH+70;canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d");
+  const grad=ctx.createLinearGradient(0,0,width,height);grad.addColorStop(0,"#07111f");grad.addColorStop(1,"#111827");ctx.fillStyle=grad;ctx.fillRect(0,0,width,height);
+  ctx.fillStyle="#f8fafc";ctx.font="bold 54px Arial";ctx.fillText("Harbu Darbu Gang",70,90);
+  ctx.fillStyle="#cbd5e1";ctx.font="28px Arial";ctx.fillText(`Summary  •  ${state.date}`,70,135);
+  roundRect(ctx,55,175,width-110,height-230,24,"rgba(17,24,39,.88)","rgba(148,163,184,.16)");
+  ctx.fillStyle="#fbbf24";ctx.font="bold 26px Arial";const cols={name:95,rebuys:500,cost:700,result:920};ctx.fillText("Player",cols.name,225);ctx.fillText("Rebuys",cols.rebuys,225);ctx.fillText("Cost",cols.cost,225);ctx.fillText("Result",cols.result,225);
+  rows.forEach((r,i)=>{const y=280+i*80;ctx.fillStyle="#f8fafc";ctx.font="bold 28px Arial";ctx.fillText(r.name,cols.name,y);ctx.fillStyle="#cbd5e1";ctx.font="26px Arial";ctx.fillText(String(r.rebuys),cols.rebuys,y);ctx.fillText(`₪${r.cost}`,cols.cost,y);ctx.fillStyle=r.result.startsWith("+")?"#4ade80":r.result.startsWith("-")?"#f87171":"#e2e8f0";ctx.font="bold 28px Arial";ctx.fillText(r.result,cols.result,y);});
+  return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.92));
+}
+async function shareWhatsApp(){
+  const blob=await createSettlementJpg();const file=new File([blob],`Harbu-Darbu-Gang-${state.date.replaceAll("/","-")}.jpg`,{type:"image/jpeg"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:"Harbu Darbu Gang",text:""});return;}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+async function finishNight(){
+  if(!confirm("Finish this night and save it?"))return;
+  
