@@ -1,0 +1,180 @@
+  <div class="summaryGrid">
+        <div class="stat"><b id="gameCount">0</b>Games</div>
+        <div class="stat"><b id="playerCount">0</b>Players</div>
+      </div>
+    </div>
+    <div class="card"><h2>Leaderboard</h2><div id="leaderboard"></div></div>
+    <div class="card"><h2>Money Summary</h2><div id="moneySummary"></div></div>
+    <div class="card"><h2>Game History</h2><div id="history"></div></div>
+  </section>
+
+  <section id="closeTab" class="hidden">
+    <div class="card">
+      <h2>Close Night</h2>
+      <div class="muted">Review, share, then save this night to the database.</div>
+    </div>
+    <div class="card"><h2>Summary</h2><div id="closeSummary"></div></div>
+    <button class="whatsapp" id="shareWhatsAppBtn">SEND JPG TO WHATSAPP</button>
+    <button class="red" id="finishNightBtn">FINISH NIGHT & SAVE</button>
+  </section>
+
+  <section id="oldNightsTab" class="hidden">
+    <div class="card">
+      <h2>Old Nights</h2>
+      <div class="muted">Saved in Supabase and visible from every device using the same access code.</div>
+      <button class="green" id="newNightFromArchiveBtn" style="margin-top:12px">NEW NIGHT</button>
+    </div>
+    <div id="oldNightsList"></div>
+  </section>
+</section>
+
+<section id="projectorScreen" class="hidden">
+  <div class="projectorWrap">
+    <div class="projectorCard">
+      <div id="projectorContent"></div>
+      <button class="secondary" id="projectorBackBtn" style="margin-top:25px;max-width:260px">BACK</button>
+    </div>
+  </div>
+</section>
+
+<div id="celebration" class="celebrate hidden">
+  <div>
+    <div class="cup">🏆</div>
+    <div>WINNER</div>
+    <div id="celebrationName" class="name"></div>
+    <button class="primary" id="continueBtn">CONTINUE</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+const GAMES=[
+{id:"chiket",name:"Chiket",type:"chiket"},
+{id:"texas",name:"Texas Hold'em",type:"general"},
+{id:"pineapple",name:"Pineapple",type:"general"},
+{id:"omaha4",name:"Omaha 4 Cards",type:"omaha"},
+{id:"omaha5",name:"Omaha 5 Cards",type:"omaha"},
+{id:"omaha6",name:"Omaha 6 Cards",type:"omaha"},
+{id:"yarniv",name:"Yarniv",type:"general"},
+{id:"swap",name:"Swap",type:"general"},
+{id:"harbu",name:"Harbu Darbu",type:"general"},
+{id:"threepairs",name:"3 Pairs",type:"general"}
+];
+
+const RULES=[
+{id:"twoBoards",label:"2 Boards",appliesTo:"allExceptChiket"},
+{id:"strongBoard",label:"1 Board Stronger",appliesTo:"allExceptChiket",requires:"twoBoards"},
+{id:"chiketOpenCloseOpen",label:"Open / Close / Open Cards",appliesTo:"chiket"},
+{id:"insert3",label:"Insert 3 Cards",appliesTo:"omaha5"},
+{id:"sharedCard",label:"Shared Card",appliesTo:"omaha"},
+{id:"sevenBoom",label:"7 Boom",appliesTo:"all"}
+];
+
+const PLAYERS=["Matan","Zafrir","Guy","Aliyahu","MR Zucker","Aviv","Doron","Oren","Hagai","Beny","Amir","Guest"];
+const PRICE=25;
+const el=id=>document.getElementById(id);
+
+const db = (window.HDG_SUPABASE_URL && window.HDG_SUPABASE_KEY)
+  ? window.supabase.createClient(window.HDG_SUPABASE_URL, window.HDG_SUPABASE_KEY)
+  : null;
+
+let groupKey="";
+let selectedRules=new Set();
+let selectedWinners=new Set();
+let currentGame=null;
+let projectorTimer=null;
+
+let state=newNightState();
+
+function newNightState(){
+  return {
+    date:new Date().toLocaleDateString("en-GB"),
+    room:Math.random().toString(36).slice(2,10).toUpperCase(),
+    players:[],
+    games:[],
+    rebuys:{},
+    cashout:{},
+    liveStatus:"waiting",
+    liveGame:null,
+    liveWinner:null
+  };
+}
+
+async function sha256(text){
+  const bytes=new TextEncoder().encode(text);
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+function showScreen(id){
+  ["loginScreen","welcomeScreen","nightSetupScreen","mainApp","projectorScreen"].forEach(x=>el(x).classList.add("hidden"));
+  el(id).classList.remove("hidden");
+}
+function showGameView(id){
+  ["homeView","gameSetupView","currentGameView","winnerView"].forEach(x=>el(x).classList.add("hidden"));
+  el(id).classList.remove("hidden");
+}
+function activateTab(id){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+  ["gameTab","moneyTab","statsTab","closeTab","oldNightsTab"].forEach(x=>el(x).classList.add("hidden"));
+  el(id).classList.remove("hidden");
+  if(id==="moneyTab")renderMoney();
+  if(id==="statsTab")renderStats();
+  if(id==="closeTab")renderClose();
+  if(id==="oldNightsTab")loadOldNights();
+}
+
+async function rpc(name,args={}){
+  if(!db) throw new Error("Supabase is not configured.");
+  const {data,error}=await db.rpc(name,args);
+  if(error) throw error;
+  return data;
+}
+
+async function verifyAccess(code){
+  if(!db) throw new Error("Supabase is not configured yet.");
+  const key=await sha256(code.trim());
+  const ok=await rpc("hdg_check_group",{p_group_key:key});
+  if(ok){
+    groupKey=key;
+    sessionStorage.setItem("hdg_group_key",key);
+    return true;
+  }
+  return false;
+}
+
+async function saveLive(){
+  if(!groupKey) return;
+  el("syncStatus").textContent="Saving...";
+  try{
+    await rpc("hdg_save_live",{p_group_key:groupKey,p_room_code:state.room,p_state:state});
+    el("syncStatus").textContent="Synced";
+  }catch(e){
+    el("syncStatus").textContent="Sync failed";
+    console.error(e);
+  }
+}
+
+async function loadLatestOpenNight(){
+  const data=await rpc("hdg_get_open_night",{p_group_key:groupKey});
+  if(data && data.room){
+    state=data;
+    return true;
+  }
+  return false;
+}
+
+function applies(r,g){
+  if(r.appliesTo==="all")return true;
+  if(r.appliesTo==="allExceptChiket")return g.id!=="chiket";
+  if(r.appliesTo==="chiket")return g.id==="chiket";
+  if(r.appliesTo==="omaha")return g.type==="omaha";
+  if(r.appliesTo==="omaha5")return g.id==="omaha5";
+  return false;
+}
+function ensureMoney(){
+  state.players.forEach(p=>{state.rebuys[p]??=0;state.cashout[p]??=0;});
+}
+function updateTop(){
+  el("dateTop").textConten
