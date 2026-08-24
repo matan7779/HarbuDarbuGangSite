@@ -1,4 +1,4 @@
-/* Harbu Darbu Gang V15 enhancements */
+/* Harbu Darbu Gang V16 enhancements */
 (function(){
   const css=document.createElement('style');
   css.textContent=`
@@ -6,8 +6,13 @@
   .archiveActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.archiveActions button{width:auto;margin:0}
   .nightOverlay{position:fixed;inset:0;background:rgba(3,7,18,.97);z-index:120;overflow:auto;padding:18px}
   .nightOverlayInner{max-width:760px;margin:0 auto}.nightOverlayHeader{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;position:sticky;top:0;background:rgba(3,7,18,.96);padding:8px 0;z-index:2}
-  .nightOverlayHeader button{width:auto;margin:0}.gameScroll{max-height:48vh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px}.typePills{display:flex;gap:7px;flex-wrap:wrap}.typePill{background:#334155;border-radius:999px;padding:7px 10px;font-size:12px}
-  .archiveMoney td:last-child,.archiveMoney th:last-child{text-align:right}.moneyBig{font-size:18px;font-weight:900}.archiveMetaStrong{font-size:13px;color:#e2e8f0}
+  .nightOverlayHeader button{width:auto;margin:0}
+  .gameScroll{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px}
+  .typePills{display:flex;gap:9px;flex-wrap:wrap}.typePill{background:#334155;border-radius:999px;padding:9px 12px;font-size:14px}
+  .archiveMoney td:last-child,.archiveMoney th:last-child{text-align:right}.moneyBig{font-size:21px;font-weight:900}.archiveMetaStrong{font-size:15px;color:#e2e8f0}
+  .fullStatsCard h2{font-size:22px}.fullStatsCard table th,.fullStatsCard table td{font-size:16px;padding:11px 6px}
+  .winsTable td{font-size:17px!important}.winsTable td:first-child{font-weight:800}
+  .archiveMoney td:first-child{font-weight:800;font-size:17px!important}.archiveMoney th{font-size:15px!important}
   `;
   document.head.appendChild(css);
 
@@ -41,6 +46,27 @@
   }
   const originalUpdateTop=window.updateTop;
   window.updateTop=function(){if(originalUpdateTop)originalUpdateTop();const r=document.getElementById('roomTop');if(r)r.textContent='Room '+(state.room||'—')};
+
+  // Cash-out is displayed as number of 25₪ units, like rebuys.
+  window.renderMoney=function(){
+    ensureMoney();
+    let total=0;const c=document.getElementById('moneyRows');c.innerHTML='';
+    state.players.forEach(p=>{
+      const rb=Number(state.rebuys[p]||0),co=Number(state.cashout[p]||0),coUnits=Math.round(co/PRICE);total+=rb;
+      const row=document.createElement('div');row.className='moneyRow';
+      row.innerHTML=`
+        <div><div class="moneyName">${esc(p)}</div><div class="muted">Rebuy cost: ${rb*PRICE}₪</div></div>
+        <div><div class="centerMuted">Rebuys</div><div class="counter"><button data-rm>−</button><span>${rb}</span><button data-rp>+</button></div></div>
+        <div><div class="centerMuted">Cash out</div><div class="counter"><button data-cm>−</button><span>${coUnits}</span><button data-cp>+</button></div></div>`;
+      row.querySelector('[data-rm]').onclick=async()=>{state.rebuys[p]=Math.max(0,rb-1);renderMoney();renderStats();await saveLive()};
+      row.querySelector('[data-rp]').onclick=async()=>{state.rebuys[p]=rb+1;renderMoney();renderStats();await saveLive()};
+      row.querySelector('[data-cm]').onclick=async()=>{state.cashout[p]=Math.max(0,co-PRICE);renderMoney();renderStats();await saveLive()};
+      row.querySelector('[data-cp]').onclick=async()=>{state.cashout[p]=co+PRICE;renderMoney();renderStats();await saveLive()};
+      c.appendChild(row);
+    });
+    document.getElementById('totalRebuys').textContent=total;
+    document.getElementById('totalRebuyCost').textContent=(total*PRICE)+'₪';
+  };
 
   // Money display uses +25₪ / -25₪ / 0₪ format.
   const originalRenderStats=window.renderStats;
@@ -98,11 +124,11 @@
     if(!overlay){overlay=document.createElement('div');overlay.id='nightDetailsOverlay';overlay.className='nightOverlay hidden';document.body.appendChild(overlay)}
     overlay.innerHTML=`<div class="nightOverlayInner">
       <div class="nightOverlayHeader"><div><div class="brand">${esc(n.night_date)}</div><div class="muted">${n.games.length} games · ${n.players.length} players</div></div><button class="secondary smallBtn" id="closeNightOverlay">CLOSE</button></div>
-      <div class="card"><h2>Night Stats</h2><div class="summaryGrid"><div class="stat"><b>${n.games.length}</b>Games</div><div class="stat"><b>${n.players.length}</b>Players</div></div></div>
-      <div class="card"><h2>Game Types</h2><div class="typePills">${counts.length?counts.map(([name,c])=>`<span class="typePill">${esc(name)} × ${c}</span>`).join(''):'<span class="muted">No games</span>'}</div></div>
-      <div class="card"><h2>Wins</h2>${wins.length?`<table>${wins.map(([p,c],i)=>`<tr><td>${i+1}. ${esc(p)}</td><td style="text-align:right">${c}</td></tr>`).join('')}</table>`:'<div class="muted">No winners recorded.</div>'}</div>
-      <div class="card"><h2>Money Summary</h2><table class="archiveMoney"><tr><th>Player</th><th>Result</th></tr>${n.players.map(p=>{const d=netFor(n,p),cls=d>0?'pos':d<0?'neg':'zer';return `<tr><td>${esc(p)}</td><td class="${cls} moneyBig">${fmtNet(d)}</td></tr>`}).join('')}</table></div>
-      <div class="card"><h2>Game History (${n.games.length})</h2><div class="gameScroll">${n.games.map((g,i)=>`<div style="padding:10px 2px;border-bottom:1px solid var(--line)"><strong>${i+1}. ${esc(g.name)}</strong><div class="muted">${safeArray(g.rules).length?safeArray(g.rules).map(esc).join(', '):'Regular'}</div><div class="archiveMetaStrong">Winner: ${safeArray(g.winners).length?safeArray(g.winners).map(esc).join(' + '):'—'}</div></div>`).join('')||'<div class="muted">No games.</div>'}</div></div>
+      <div class="card fullStatsCard"><h2>Night Stats</h2><div class="summaryGrid"><div class="stat"><b>${n.games.length}</b>Games</div><div class="stat"><b>${n.players.length}</b>Players</div></div></div>
+      <div class="card fullStatsCard"><h2>Wins</h2>${wins.length?`<table class="winsTable">${wins.map(([p,c],i)=>`<tr><td>${i+1}. ${esc(p)}</td><td style="text-align:right;font-weight:900">${c}</td></tr>`).join('')}</table>`:'<div class="muted" style="font-size:16px">No winners recorded.</div>'}</div>
+      <div class="card fullStatsCard"><h2>Money Summary</h2><table class="archiveMoney"><tr><th>Player</th><th>Result</th></tr>${n.players.map(p=>{const d=netFor(n,p),cls=d>0?'pos':d<0?'neg':'zer';return `<tr><td>${esc(p)}</td><td class="${cls} moneyBig">${fmtNet(d)}</td></tr>`}).join('')}</table></div>
+      <div class="card fullStatsCard"><h2>Game Types</h2><div class="typePills">${counts.length?counts.map(([name,c])=>`<span class="typePill">${esc(name)} × ${c}</span>`).join(''):'<span class="muted">No games</span>'}</div></div>
+      <div class="card fullStatsCard"><h2>Game History (${n.games.length})</h2><div class="gameScroll">${n.games.map((g,i)=>`<div style="padding:12px 2px;border-bottom:1px solid var(--line)"><strong style="font-size:16px">${i+1}. ${esc(g.name)}</strong><div class="muted" style="font-size:14px">${safeArray(g.rules).length?safeArray(g.rules).map(esc).join(', '):'Regular'}</div><div class="archiveMetaStrong">Winner: ${safeArray(g.winners).length?safeArray(g.winners).map(esc).join(' + '):'—'}</div></div>`).join('')||'<div class="muted">No games.</div>'}</div></div>
       <div class="card"><div class="archiveActions"><button class="whatsapp smallBtn" id="shareOldNight">SHARE JPG</button><button class="secondary smallBtn" id="copyOldNight">COPY JPG</button></div></div>
     </div>`;
     overlay.classList.remove('hidden');
@@ -130,9 +156,6 @@
     }catch(e){c.innerHTML=`<div class="card"><div class="loginError">${esc(e.message)}</div></div>`}
   };
 
-  // re-bind archive tab so it uses the upgraded loader
   document.querySelectorAll('.tab').forEach(b=>{if(b.dataset.tab==='oldNightsTab')b.onclick=()=>{activateTab('oldNightsTab');loadOldNights()}});
-
-  // Immediately refresh top room code if a night is already loaded.
   try{updateTop()}catch(e){}
 })();
