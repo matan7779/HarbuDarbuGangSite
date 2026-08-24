@@ -1,0 +1,112 @@
+t=state.date;
+  el("gamesTop").textContent=state.games.length;
+  el("roomCode").textContent=state.room;
+}
+function renderPlayersSetup(){
+  const c=el("nightPlayers");c.innerHTML="";
+  PLAYERS.forEach(p=>{
+    const b=document.createElement("button");
+    b.className="player"+(state.players.includes(p)?" selected":"");
+    b.textContent=p;
+    b.onclick=()=>{
+      state.players=state.players.includes(p)?state.players.filter(x=>x!==p):[...state.players,p];
+      renderPlayersSetup();
+    };
+    c.appendChild(b);
+  });
+}
+function renderActivePlayers(){
+  el("activePlayers").innerHTML=state.players.map(p=>`<span class="badge">${p}</span>`).join("");
+}
+function renderRules(){
+  const g=GAMES.find(x=>x.id===el("gameSelect").value);
+  const c=el("rulesList");c.innerHTML="";
+  RULES.forEach(r=>{
+    const enabled=applies(r,g)&&(!r.requires||selectedRules.has(r.requires));
+    if(!enabled)selectedRules.delete(r.id);
+    const row=document.createElement("label");row.className="rule";row.style.opacity=enabled?"1":".45";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=selectedRules.has(r.id);cb.disabled=!enabled;
+    cb.onchange=()=>{
+      cb.checked?selectedRules.add(r.id):selectedRules.delete(r.id);
+      if(r.id==="twoBoards"&&!cb.checked)selectedRules.delete("strongBoard");
+      renderRules();
+    };
+    row.append(cb,document.createTextNode(r.label));c.appendChild(row);
+  });
+}
+function renderMoney(){
+  ensureMoney();
+  let total=0;const c=el("moneyRows");c.innerHTML="";
+  state.players.forEach(p=>{
+    const rb=state.rebuys[p]||0, co=Number(state.cashout[p]||0);total+=rb;
+    const row=document.createElement("div");row.className="moneyRow";
+    row.innerHTML=`
+      <div><div class="moneyName">${p}</div><div class="muted">Rebuy cost: ₪${rb*PRICE}</div></div>
+      <div><div class="centerMuted">Rebuys</div><div class="counter"><button data-rm>−</button><span>${rb}</span><button data-rp>+</button></div></div>
+      <div><div class="centerMuted">Cash out</div><div class="counter"><button data-cm>−</button><span>₪${co}</span><button data-cp>+</button></div></div>`;
+    row.querySelector("[data-rm]").onclick=async()=>{state.rebuys[p]=Math.max(0,rb-1);renderMoney();renderStats();await saveLive();};
+    row.querySelector("[data-rp]").onclick=async()=>{state.rebuys[p]=rb+1;renderMoney();renderStats();await saveLive();};
+    row.querySelector("[data-cm]").onclick=async()=>{state.cashout[p]=Math.max(0,co-25);renderMoney();renderStats();await saveLive();};
+    row.querySelector("[data-cp]").onclick=async()=>{state.cashout[p]=co+25;renderMoney();renderStats();await saveLive();};
+    c.appendChild(row);
+  });
+  el("totalRebuys").textContent=total;
+  el("totalRebuyCost").textContent="₪"+total*PRICE;
+}
+function renderStats(){
+  ensureMoney();
+  el("gameCount").textContent=state.games.length;
+  el("playerCount").textContent=state.players.length;
+  const wins={};
+  state.games.forEach(g=>g.winners.forEach(w=>wins[w]=(wins[w]||0)+1));
+  const rank=Object.entries(wins).sort((a,b)=>b[1]-a[1]);
+  el("leaderboard").innerHTML=rank.length?`<table><tr><th>#</th><th>Player</th><th>Wins</th></tr>${rank.map((r,i)=>`<tr><td>${i+1}</td><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>`:`<div class="muted">No games yet.</div>`;
+  el("history").innerHTML=state.games.length?state.games.map((g,i)=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>${i+1}. ${g.name}</strong><br><span class="muted">${g.rules.length?g.rules.join(", "):"Regular"}</span><br>Winner: ${g.winners.join(" + ")}</div>`).join(""):`<div class="muted">No games yet.</div>`;
+  el("moneySummary").innerHTML=`<table><tr><th>Player</th><th>Rebuys</th><th>Cost</th><th>Cash Out</th><th>Diff</th></tr>${
+    state.players.map(p=>{
+      const rb=state.rebuys[p]||0,cost=rb*PRICE,cash=Number(state.cashout[p]||0),diff=cash-cost;
+      const cls=diff>0?"pos":diff<0?"neg":"zer";
+      const label=diff>0?`+₪${diff}`:diff<0?`-₪${Math.abs(diff)}`:"₪0";
+      return `<tr><td>${p}</td><td>${rb}</td><td>₪${cost}</td><td>₪${cash}</td><td class="${cls}">${label}</td></tr>`;
+    }).join("")
+  }</table>`;
+}
+function renderClose(){
+  ensureMoney();
+  el("closeSummary").innerHTML=`<table><tr><th>Player</th><th>Rebuys</th><th>Result</th></tr>${
+    state.players.map(p=>{
+      const rb=state.rebuys[p]||0,cost=rb*PRICE,cash=Number(state.cashout[p]||0),diff=cash-cost;
+      const cls=diff>0?"pos":diff<0?"neg":"zer";
+      const result=diff>0?`Won ₪${diff}`:diff<0?`Lost ₪${Math.abs(diff)}`:"₪0";
+      return `<tr><td>${p}</td><td>${rb} (₪${cost})</td><td class="${cls}">${result}</td></tr>`;
+    }).join("")
+  }</table>`;
+}
+
+async function loadOldNights(){
+  const c=el("oldNightsList");c.innerHTML=`<div class="card"><div class="muted">Loading...</div></div>`;
+  try{
+    const nights=await rpc("hdg_get_old_nights",{p_group_key:groupKey});
+    c.innerHTML="";
+    if(!nights || !nights.length){
+      c.innerHTML=`<div class="card"><div class="muted">No saved nights yet.</div></div>`;
+      return;
+    }
+    nights.forEach(n=>{
+      const item=document.createElement("div");item.className="archiveItem";
+      item.innerHTML=`
+        <div class="archiveHead">
+          <div><div style="font-weight:900">${n.night_date}</div><div class="muted">${n.games.length} games · ${n.players.length} players</div></div>
+          <button class="red smallBtn">Delete</button>
+        </div>
+        <button class="secondary smallBtn" data-show style="margin-top:8px">Show details</button>
+        <div class="hidden" data-details style="margin-top:10px"></div>`;
+      const details=item.querySelector("[data-details]");
+      item.querySelector("[data-show]").onclick=()=>{
+        details.classList.toggle("hidden");
+        details.innerHTML=renderArchiveDetails(n);
+      };
+      item.querySelector(".red").onclick=async()=>{
+        if(confirm("Delete this saved night?")){
+          await rpc("hdg_delete_night",{p_group_key:groupKey,p_night_id:n.id});
+   
