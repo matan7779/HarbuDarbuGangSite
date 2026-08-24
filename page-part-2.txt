@@ -1,0 +1,136 @@
+font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
+.projectorWinner{font-size:clamp(62px,10vw,150px);font-weight:900}
+.projectorTrophy{font-size:clamp(72px,12vw,170px)}
+.projectorRoom{font-size:clamp(22px,3vw,36px);color:var(--blue);margin-top:10px}
+.roomCode{font-size:26px;font-weight:900;letter-spacing:3px}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+.loginBox{max-width:430px;margin:0 auto}
+.codeInput{width:100%;padding:13px;background:#fff;color:#111827;border-radius:12px;border:none;font-size:18px;letter-spacing:2px;text-align:center}
+.loginError{color:#fca5a5;font-size:13px;margin-top:8px}
+.roomCode{font-size:24px;font-weight:900;letter-spacing:3px}
+.projectorWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+.projectorCard{width:min(1100px,96vw);background:rgba(17,24,39,.95);border:1px solid rgba(148,163,184,.18);border-radius:28px;padding:42px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.projectorTitle{font-size:clamp(42px,7vw,92px);font-weight:900;line-height:1.05;margin-bottom:20px}
+.projectorRules{font-size:clamp(22px,3vw,40px);color:#fbbf24;margin-bottom:24px}
+.projectorPlayers{font-size:clamp(18px,2.2vw,30px);color:#cbd5e1}
+.projectorWinner{font-size:clamp(62px,10vw,150px);font-weight:900}
+.projectorTrophy{font-size:clamp(72px,12vw,170px)}
+.projectorRoom{font-size:clamp(22px,3vw,36px);color:#38bdf8;margin-top:14px}
+.syncStatus{font-size:12px;color:#94a3b8;margin-top:7px}
+.archiveItem{background:rgba(30,41,59,.95);border:1px solid rgba(148,163,184,.18);border-radius:14px;padding:12px;margin-bottom:10px}
+.archiveHead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.smallBtn{width:auto;padding:8px 10px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section id="loginScreen">
+  <div class="card loginBox">
+    <img class="heroImg" src="hero.svg" alt="Poker table">
+    <div class="heroTitle">Harbu Darbu Gang</div>
+    <div class="heroSub">Enter the group access code.</div>
+    <input id="accessCodeInput" class="codeInput" type="password" placeholder="Access Code" autocomplete="off">
+    <button class="primary" id="loginBtn">ENTER</button>
+    <div id="loginError" class="loginError"></div>
+  </div>
+</section>
+
+<section id="welcomeScreen" class="hidden">
+  <div class="card">
+    <img class="heroImg" src="hero.svg" alt="Poker table">
+    <div class="heroTitle">Harbu Darbu Gang</div>
+    <div class="heroSub">Game night controller, projector display, rebuys and history.</div>
+    <button class="primary" id="startControlBtn">START / CONTROL NIGHT</button>
+    <button class="secondary" id="projectorBtn">PROJECTOR DISPLAY</button>
+    <button class="secondary" id="oldNightsBtn">OLD NIGHTS</button>
+    <button class="ghost" id="logoutBtn">LOG OUT</button>
+  </div>
+</section>
+
+<section id="nightSetupScreen" class="hidden">
+  <div class="brand">Harbu Darbu Gang</div>
+  <div class="muted" style="margin:4px 0 14px">Choose tonight's players once. You can change them later.</div>
+  <div class="card">
+    <div style="font-weight:900">Night date: <span id="nightDate"></span></div>
+    <div class="muted" style="margin-top:8px">Room code</div>
+    <div id="roomCode" class="roomCode"></div>
+  </div>
+  <div class="card">
+    <h2>Players Tonight</h2>
+    <div id="nightPlayers" class="players"></div>
+  </div>
+  <button class="green" id="startNightBtn">START NIGHT</button>
+  <button class="secondary" id="backWelcomeBtn">BACK</button>
+</section>
+
+<section id="mainApp" class="hidden">
+  <div class="topbar">
+    <div>
+      <div class="brand" style="font-size:23px">Harbu Darbu Gang</div>
+      <div class="muted" id="dateTop"></div>
+      <div id="syncStatus" class="syncStatus"></div>
+    </div>
+    <div class="chip"><span id="gamesTop">0</span> games</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="gameTab">Game</button>
+    <button class="tab" data-tab="moneyTab">Rebuys</button>
+    <button class="tab" data-tab="statsTab">Stats</button>
+    <button class="tab closer" data-tab="closeTab">Close Night</button>
+    <button class="tab" data-tab="oldNightsTab">Old Nights</button>
+  </div>
+
+  <section id="gameTab">
+    <div id="homeView">
+      <div class="card">
+        <h2>Tonight's Players</h2>
+        <div id="activePlayers"></div>
+        <button class="secondary" id="editPlayersBtn">Add / Remove Players</button>
+      </div>
+      <button class="primary" id="newGameBtn">NEW GAME</button>
+    </div>
+
+    <div id="gameSetupView" class="hidden">
+      <div class="card"><h2>Select Game</h2><select id="gameSelect"></select></div>
+      <div class="card"><h2>Select Rules</h2><div id="rulesList"></div></div>
+      <button class="primary" id="startGameBtn">START GAME</button>
+      <button class="secondary" id="cancelGameBtn">Cancel</button>
+    </div>
+
+    <div id="currentGameView" class="hidden">
+      <div class="card"><h2>Current Game</h2><div id="currentGameInfo"></div></div>
+      <button class="primary" id="endGameBtn">END GAME</button>
+    </div>
+
+    <div id="winnerView" class="hidden">
+      <div class="card">
+        <h2>Select Winner(s)</h2>
+        <div id="winnerList"></div>
+        <div class="muted">Choose more than one player for a split.</div>
+      </div>
+      <button class="primary" id="saveWinnerBtn">SAVE RESULT</button>
+      <button class="secondary" id="winnerBackBtn">Back</button>
+    </div>
+  </section>
+
+  <section id="moneyTab" class="hidden">
+    <div class="card">
+      <h2>Rebuys & Cash Out</h2>
+      <div class="muted">Each rebuy = ₪25. Cash out changes in ₪25 steps.</div>
+    </div>
+    <div class="card" id="moneyRows"></div>
+    <div class="card">
+      <div class="summaryGrid">
+        <div class="stat"><b id="totalRebuys">0</b>Rebuys</div>
+        <div class="stat"><b id="totalRebuyCost">₪0</b>Rebuy Cost</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="statsTab" class="hidden">
+    <div class="card"><h2>Night Summary</h2>
+    
