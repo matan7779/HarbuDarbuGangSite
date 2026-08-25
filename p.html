@@ -13,7 +13,9 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center;ove
 .title{font-size:clamp(44px,7vw,96px);font-weight:900;line-height:1.05;margin-bottom:20px}
 .rules{font-size:clamp(22px,3vw,40px);color:#fbbf24;margin-bottom:24px}
 .players{font-size:clamp(18px,2.2vw,30px);color:#cbd5e1}
-.room{font-size:clamp(22px,3vw,36px);color:#38bdf8;margin-top:14px}
+.room{font-size:clamp(12px,1.25vw,18px);color:#64748b;margin-top:16px;font-weight:700;letter-spacing:.04em}
+.boomFlash{display:inline-block;font-weight:900;animation:boomPulse .75s ease-in-out infinite}
+@keyframes boomPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.28;transform:scale(1.12)}}
 .trophy{font-size:clamp(72px,12vw,170px)}
 .winner{font-size:clamp(62px,10vw,150px);font-weight:900}
 .status{font-size:clamp(20px,2.4vw,34px);color:#cbd5e1;margin-top:18px}
@@ -47,14 +49,18 @@ const $=id=>document.getElementById(id);
 async function sha256(text){const b=new TextEncoder().encode(text);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function rpc(name,args={}){if(!db)throw new Error('Supabase is not configured.');const {data,error}=await db.rpc(name,args);if(error)throw error;return data}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderRules(rules){
+  if(!Array.isArray(rules)||!rules.length)return 'Regular';
+  return rules.map(r=>String(r).trim()==='7 Boom'?`<span class="boomFlash">7 Boom</span>`:esc(r)).join(' · ');
+}
 function render(s){
   if(!s){$('content').innerHTML='<div class="status">Waiting for current night…</div>';return}
   if(s.liveStatus==='winner'&&Array.isArray(s.liveWinner)&&s.liveWinner.length){
-    $('content').innerHTML=`<div class="trophy">🏆</div><div class="winner">${s.liveWinner.map(esc).join(' + ')}</div><div class="rules">${s.liveWinner.length>1?'SPLIT POT':'WINNER'}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+    $('content').innerHTML=`<div class="trophy">🏆</div><div class="winner">${s.liveWinner.map(esc).join(' + ')}</div><div class="rules">${s.liveWinner.length>1?'SPLIT POT':'WINNER'}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
   }else if(s.liveGame){
-    $('content').innerHTML=`<div class="title">${esc(s.liveGame.name)}</div><div class="rules">${Array.isArray(s.liveGame.rules)&&s.liveGame.rules.length?s.liveGame.rules.map(esc).join(' · '):'Regular'}</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+    $('content').innerHTML=`<div class="title">${esc(s.liveGame.name)}</div><div class="rules">${renderRules(s.liveGame.rules)}</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
   }else{
-    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">Room ${esc(s.room||room)}</div>`;
+    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
   }
 }
 async function startDisplay(){
