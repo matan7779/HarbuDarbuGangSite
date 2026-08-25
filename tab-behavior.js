@@ -13,7 +13,7 @@
   document.head.appendChild(style);
 
   function hasActiveNight(){
-    try{return !!(window.state && Array.isArray(state.players) && state.players.length>=2 && state.room)}catch(e){return false}
+    try{return !!(Array.isArray(state.players) && state.players.length>=2 && state.room)}catch(e){return false}
   }
 
   function refreshTabAvailability(activeId){
