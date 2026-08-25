@@ -45,7 +45,7 @@ el("startGameBtn").onclick=async()=>{
   const g=GAMES.find(x=>x.id===el("gameSelect").value);
   currentGame={name:g.name,rules:RULES.filter(r=>selectedRules.has(r.id)).map(r=>r.label),players:[...state.players]};
   state.liveStatus="playing";state.liveGame={name:currentGame.name,rules:[...currentGame.rules]};state.liveWinner=null;await saveLive();
-  el("currentGameInfo").innerHTML=`<strong style="font-size:24px">${currentGame.name}</strong><div>${(currentGame.rules.length?currentGame.rules:["Regular"]).map(r=>`<span class="badge">${r}</span>`).join("")}</div><div>${state.players.map(p=>`<span class="badge">${p}</span>`).join("")}</div>`;
+  el("currentGameInfo").innerHTML=`<strong style="font-size:32px;line-height:1.15;display:block;margin-bottom:12px">${currentGame.name}</strong><div>${(currentGame.rules.length?currentGame.rules:["Regular"]).map(r=>`<span class="badge" style="font-size:18px;padding:9px 13px;margin:5px 5px">${r}</span>`).join("")}</div><div>${state.players.map(p=>`<span class="badge">${p}</span>`).join("")}</div>`;
   showGameView("currentGameView");
 };
 el("endGameBtn").onclick=()=>{
