@@ -2,5 +2,3 @@
 <script src="projector-easy.js?v=1"></script>
 <script src="guest-names.js?v=1"></script>
 <script src="tab-behavior.js?v=2"></script>
-<script src="archive-polish.js?v=1"></script>
-<script src="close-night-modal.js?v=1"></script>
