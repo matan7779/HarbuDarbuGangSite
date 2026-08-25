@@ -82,9 +82,15 @@ function render(s){
     $('content').innerHTML=renderSummary(s);
   }
 }
+async function renderLastClosedNight(){
+  const rows=await rpc('hdg_get_old_nights',{p_group_key:groupKey});
+  const nights=Array.isArray(rows)?rows:[];
+  if(!nights.length){$('content').innerHTML='<div class="status">No active night yet.<br>Start the night on the phone, then this screen will connect automatically.</div>';return}
+  render(nights[0]);
+}
 async function startDisplay(){
   const current=await rpc('hdg_get_open_night',{p_group_key:groupKey});
-  if(!current||!current.room){$('content').innerHTML='<div class="status">No active night yet.<br>Start the night on the phone, then this screen will connect automatically.</div>';room='';return}
+  if(!current||!current.room){room='';await renderLastClosedNight();return}
   room=String(current.room).trim().toUpperCase();
   const s=await rpc('hdg_get_live',{p_group_key:groupKey,p_room_code:room});render(s||current);
 }
