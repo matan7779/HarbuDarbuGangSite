@@ -13,6 +13,9 @@
   .fullStatsCard h2{font-size:22px}.fullStatsCard table th,.fullStatsCard table td{font-size:16px;padding:11px 6px}
   .winsTable td{font-size:17px!important}.winsTable td:first-child{font-weight:800}
   .archiveMoney td:first-child{font-weight:800;font-size:17px!important}.archiveMoney th{font-size:15px!important}
+  .hdgNotice{position:fixed;inset:0;background:rgba(2,6,23,.78);display:flex;align-items:center;justify-content:center;padding:20px;z-index:250}
+  .hdgNoticeCard{width:min(420px,94vw);background:linear-gradient(180deg,#172033,#0f172a);border:1px solid rgba(148,163,184,.22);border-radius:22px;padding:24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+  .hdgNoticeIcon{font-size:44px;margin-bottom:8px}.hdgNoticeTitle{font-size:24px;font-weight:900;margin-bottom:8px}.hdgNoticeText{color:#cbd5e1;font-size:14px;line-height:1.5;margin-bottom:18px}.hdgNoticeCard button{margin:0}
   `;
   document.head.appendChild(css);
 
@@ -35,6 +38,14 @@
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function typeCounts(n){const m={};n.games.forEach(g=>m[g.name]=(m[g.name]||0)+1);return Object.entries(m).sort((a,b)=>b[1]-a[1])}
   function winnerCounts(n){const m={};n.games.forEach(g=>safeArray(g.winners).forEach(w=>m[w]=(m[w]||0)+1));return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+  function showNotice(title,text,ok=true){
+    const old=document.getElementById('hdgNotice');if(old)old.remove();
+    const box=document.createElement('div');box.id='hdgNotice';box.className='hdgNotice';
+    box.innerHTML=`<div class="hdgNoticeCard"><div class="hdgNoticeIcon">${ok?'✓':'!'}</div><div class="hdgNoticeTitle">${esc(title)}</div><div class="hdgNoticeText">${esc(text)}</div><button class="${ok?'green':'secondary'}" data-close>OK</button></div>`;
+    document.body.appendChild(box);
+    box.querySelector('[data-close]').onclick=()=>box.remove();
+    box.addEventListener('click',e=>{if(e.target===box)box.remove()});
+  }
 
   // Room code stays visible after play starts.
   const top=document.querySelector('#mainApp .topbar');
@@ -110,9 +121,9 @@
     try{
       if(!navigator.clipboard || typeof ClipboardItem==='undefined')throw new Error('Image clipboard is not supported here');
       await navigator.clipboard.write([new ClipboardItem({'image/png':blob.type==='image/png'?blob:await (async()=>{const b=await createImageBitmap(blob),c=document.createElement('canvas');c.width=b.width;c.height=b.height;c.getContext('2d').drawImage(b,0,0);return await new Promise(r=>c.toBlob(r,'image/png'))})()})]);
-      alert('Image copied. You can now paste it in WhatsApp Web.');
+      showNotice('JPG copied','The image is ready. You can paste it directly into WhatsApp Web.');
     }catch(e){
-      alert('This browser cannot copy an image directly to the clipboard. Use “Share JPG” instead.');
+      showNotice('Copy not supported','This browser cannot copy the image directly. Use SHARE JPG instead.',false);
     }
   }
   window.shareWhatsApp=()=>shareNight({...state,night_date:state.date});
@@ -125,8 +136,8 @@
     overlay.innerHTML=`<div class="nightOverlayInner">
       <div class="nightOverlayHeader"><div><div class="brand">${esc(n.night_date)}</div><div class="muted">${n.games.length} games · ${n.players.length} players</div></div><button class="secondary smallBtn" id="closeNightOverlay">CLOSE</button></div>
       <div class="card fullStatsCard"><h2>Night Stats</h2><div class="summaryGrid"><div class="stat"><b>${n.games.length}</b>Games</div><div class="stat"><b>${n.players.length}</b>Players</div></div></div>
-      <div class="card fullStatsCard"><h2>Wins</h2>${wins.length?`<table class="winsTable">${wins.map(([p,c],i)=>`<tr><td>${i+1}. ${esc(p)}</td><td style="text-align:right;font-weight:900">${c}</td></tr>`).join('')}</table>`:'<div class="muted" style="font-size:16px">No winners recorded.</div>'}</div>
       <div class="card fullStatsCard"><h2>Money Summary</h2><table class="archiveMoney"><tr><th>Player</th><th>Result</th></tr>${n.players.map(p=>{const d=netFor(n,p),cls=d>0?'pos':d<0?'neg':'zer';return `<tr><td>${esc(p)}</td><td class="${cls} moneyBig">${fmtNet(d)}</td></tr>`}).join('')}</table></div>
+      <div class="card fullStatsCard"><h2>Wins</h2>${wins.length?`<table class="winsTable">${wins.map(([p,c],i)=>`<tr><td>${i+1}. ${esc(p)}</td><td style="text-align:right;font-weight:900">${c}</td></tr>`).join('')}</table>`:'<div class="muted" style="font-size:16px">No winners recorded.</div>'}</div>
       <div class="card fullStatsCard"><h2>Game Types</h2><div class="typePills">${counts.length?counts.map(([name,c])=>`<span class="typePill">${esc(name)} × ${c}</span>`).join(''):'<span class="muted">No games</span>'}</div></div>
       <div class="card fullStatsCard"><h2>Game History (${n.games.length})</h2><div class="gameScroll">${n.games.map((g,i)=>`<div style="padding:12px 2px;border-bottom:1px solid var(--line)"><strong style="font-size:16px">${i+1}. ${esc(g.name)}</strong><div class="muted" style="font-size:14px">${safeArray(g.rules).length?safeArray(g.rules).map(esc).join(', '):'Regular'}</div><div class="archiveMetaStrong">Winner: ${safeArray(g.winners).length?safeArray(g.winners).map(esc).join(' + '):'—'}</div></div>`).join('')||'<div class="muted">No games.</div>'}</div></div>
       <div class="card"><div class="archiveActions"><button class="whatsapp smallBtn" id="shareOldNight">SHARE JPG</button><button class="secondary smallBtn" id="copyOldNight">COPY JPG</button></div></div>
