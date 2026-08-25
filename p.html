@@ -19,11 +19,17 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center;ove
 .trophy{font-size:clamp(72px,12vw,170px)}
 .winner{font-size:clamp(62px,10vw,150px);font-weight:900}
 .status{font-size:clamp(20px,2.4vw,34px);color:#cbd5e1;margin-top:18px}
+.summaryWrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;text-align:left}
+.summarySection{background:rgba(15,23,42,.85);border:1px solid rgba(148,163,184,.16);border-radius:20px;padding:24px}
+.summarySection h2{margin:0 0 16px;font-size:clamp(24px,3vw,38px);text-align:center}
+.summaryRow{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.13);font-size:clamp(18px,2vw,28px)}
+.summaryRow:last-child{border-bottom:none}.pos{color:#4ade80;font-weight:900}.neg{color:#f87171;font-weight:900}.zer{color:#e2e8f0;font-weight:900}
 input,button{font:inherit;border:none;border-radius:14px}
 input{width:min(420px,85vw);padding:14px;text-align:center;font-size:22px;margin:16px 0;background:#fff;color:#111827}
 button{padding:14px 22px;font-weight:900;background:#f59e0b;color:#111827;cursor:pointer}
 .small{font-size:15px;color:#94a3b8;margin-top:12px}
 .hidden{display:none!important}
+@media(max-width:760px){.summaryWrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -45,6 +51,7 @@ button{padding:14px 22px;font-weight:900;background:#f59e0b;color:#111827;cursor
 <script>
 const db=(window.HDG_SUPABASE_URL&&window.HDG_SUPABASE_KEY)?window.supabase.createClient(window.HDG_SUPABASE_URL,window.HDG_SUPABASE_KEY):null;
 let groupKey='';let timer=null;let room='';
+const PRICE=25;
 const $=id=>document.getElementById(id);
 async function sha256(text){const b=new TextEncoder().encode(text);const d=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(d)).map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function rpc(name,args={}){if(!db)throw new Error('Supabase is not configured.');const {data,error}=await db.rpc(name,args);if(error)throw error;return data}
@@ -53,6 +60,18 @@ function renderRules(rules){
   if(!Array.isArray(rules)||!rules.length)return 'Regular';
   return rules.map(r=>String(r).trim()==='7 Boom'?`<span class="boomFlash">7 Boom</span>`:esc(r)).join(' · ');
 }
+function fmtNet(v){v=Number(v)||0;return v>0?`+${v}₪`:v<0?`-${Math.abs(v)}₪`:'0₪'}
+function renderSummary(s){
+  const players=Array.isArray(s.players)?s.players:[];
+  const games=Array.isArray(s.games)?s.games:[];
+  if(!games.length){return `<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${players.map(esc).join(' · ')}</div>`}
+  const rebuys=s.rebuys&&typeof s.rebuys==='object'?s.rebuys:{};
+  const cashout=s.cashout&&typeof s.cashout==='object'?s.cashout:{};
+  const wins={};games.forEach(g=>(Array.isArray(g.winners)?g.winners:[]).forEach(w=>wins[w]=(wins[w]||0)+1));
+  const moneyRows=players.map(p=>{const v=Number(cashout[p]||0)-Number(rebuys[p]||0)*PRICE;const cls=v>0?'pos':v<0?'neg':'zer';return `<div class="summaryRow"><span>${esc(p)}</span><span class="${cls}">${fmtNet(v)}</span></div>`}).join('');
+  const winRows=Object.entries(wins).sort((a,b)=>b[1]-a[1]).map(([p,c])=>`<div class="summaryRow"><span>${esc(p)}</span><span>${c}</span></div>`).join('')||'<div class="status" style="text-align:center">No wins yet</div>';
+  return `<div class="summaryWrap"><div class="summarySection"><h2>Money Summary</h2>${moneyRows}</div><div class="summarySection"><h2>Wins</h2>${winRows}</div></div>`;
+}
 function render(s){
   if(!s){$('content').innerHTML='<div class="status">Waiting for current night…</div>';return}
   if(s.liveStatus==='winner'&&Array.isArray(s.liveWinner)&&s.liveWinner.length){
@@ -60,7 +79,7 @@ function render(s){
   }else if(s.liveGame){
     $('content').innerHTML=`<div class="title">${esc(s.liveGame.name)}</div><div class="rules">${renderRules(s.liveGame.rules)}</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
   }else{
-    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div>`;
+    $('content').innerHTML=renderSummary(s);
   }
 }
 async function startDisplay(){
