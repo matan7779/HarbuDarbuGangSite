@@ -56,11 +56,11 @@ function renderRules(rules){
 function render(s){
   if(!s){$('content').innerHTML='<div class="status">Waiting for current night…</div>';return}
   if(s.liveStatus==='winner'&&Array.isArray(s.liveWinner)&&s.liveWinner.length){
-    $('content').innerHTML=`<div class="trophy">🏆</div><div class="winner">${s.liveWinner.map(esc).join(' + ')}</div><div class="rules">${s.liveWinner.length>1?'SPLIT POT':'WINNER'}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
+    $('content').innerHTML=`<div class="trophy">🏆</div><div class="winner">${s.liveWinner.map(esc).join(' + ')}</div><div class="rules">${s.liveWinner.length>1?'SPLIT POT':'WINNER'}</div>`;
   }else if(s.liveGame){
     $('content').innerHTML=`<div class="title">${esc(s.liveGame.name)}</div><div class="rules">${renderRules(s.liveGame.rules)}</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
   }else{
-    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div><div class="room">ROOM ${esc(s.room||room)}</div>`;
+    $('content').innerHTML=`<div class="title">Harbu Darbu Gang</div><div class="rules">Waiting for next game…</div><div class="players">${Array.isArray(s.players)?s.players.map(esc).join(' · '):''}</div>`;
   }
 }
 async function startDisplay(){
