@@ -67,9 +67,9 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
 </section>
 
 <section id="mainApp" class="hidden">
+  <div class="brand" style="font-size:23px;text-align:center;margin-bottom:8px">Harbu Darbu Gang</div>
   <div class="topbar">
     <div>
-      <div class="brand" style="font-size:23px">Harbu Darbu Gang</div>
       <div class="muted" id="dateTop"></div>
       <div id="syncStatus" class="syncStatus"></div>
     </div>
@@ -102,7 +102,7 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
     </div>
 
     <div id="currentGameView" class="hidden">
-      <div class="card"><h2>Current Game</h2><div id="currentGameInfo"></div></div>
+      <div class="card" style="text-align:center"><h2>Current Game</h2><div id="currentGameInfo"></div></div>
       <button class="primary" id="endGameBtn">END GAME</button>
     </div>
 
