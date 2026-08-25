@@ -4,3 +4,4 @@
 <script src="tab-behavior.js?v=2"></script>
 <script src="old-night-header.js?v=1"></script>
 <script src="start-night-modal.js?v=1"></script>
+<script src="close-night-modal.js?v=2"></script>
