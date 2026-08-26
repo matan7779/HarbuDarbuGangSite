@@ -2,17 +2,35 @@
 (function(){
   const style=document.createElement('style');
   style.textContent=`
-    #loginScreen #loginBtn{margin-top:14px}
+    #loginScreen #loginBtn{margin-top:18px}
     #welcomeScreen .heroTitle{text-align:center}
     #nightSetupScreen{text-align:center}
     #nightSetupScreen .brand{text-align:center}
     #nightSetupScreen h2{text-align:center}
     #nightSetupScreen .customPlayerBox{text-align:center}
+    #nightSetupScreen #nightDate{display:block;margin-top:6px}
   `;
   document.head.appendChild(style);
 
   const welcomeTitle=document.querySelector('#welcomeScreen .heroTitle');
   if(welcomeTitle)welcomeTitle.textContent='קבוצת חארבו דארבו';
+
+  // Prevent the password field from lingering/flashing after ENTER is pressed.
+  const loginBtn=document.getElementById('loginBtn');
+  const accessInput=document.getElementById('accessCodeInput');
+  if(loginBtn&&accessInput){
+    loginBtn.addEventListener('click',()=>{
+      accessInput.blur();
+      setTimeout(()=>{accessInput.value='';},0);
+    });
+  }
+
+  // Translate the requested main navigation buttons.
+  document.querySelectorAll('.tab').forEach(btn=>{
+    if(btn.dataset.tab==='moneyTab')btn.textContent='ריבאיים';
+    if(btn.dataset.tab==='statsTab')btn.textContent='סטטיסטיקות';
+    if(btn.dataset.tab==='oldNightsTab')btn.textContent='ערבים קודמים';
+  });
 
   const setup=document.getElementById('nightSetupScreen');
   if(setup){
@@ -24,7 +42,7 @@
     const dateLine=setup.querySelector('.card div[style*="font-weight:900"]');
     if(dateLine){
       const date=document.getElementById('nightDate');
-      dateLine.textContent='תאריך הערב: ';
+      dateLine.textContent='תאריך משחק';
       if(date)dateLine.appendChild(date);
     }
     const roomLabel=document.querySelector('#nightSetupScreen .roomCode')?.previousElementSibling;
@@ -58,4 +76,19 @@
     };
   }
   translateCustomPlayerBox();
+
+  // After starting a valid night, go directly to Rebuys instead of Game.
+  const startNightBtn=document.getElementById('startNightBtn');
+  if(startNightBtn&&typeof startNightBtn.onclick==='function'){
+    const originalStartNight=startNightBtn.onclick;
+    startNightBtn.onclick=async function(e){
+      const result=await originalStartNight.call(this,e);
+      try{
+        if(Array.isArray(state.players)&&state.players.length>=2&&!document.getElementById('mainApp').classList.contains('hidden')){
+          activateTab('moneyTab');
+        }
+      }catch(err){}
+      return result;
+    };
+  }
 })();
