@@ -1,7 +1,7 @@
 <script src="enhancements.js?v=16"></script>
 <script src="projector-easy.js?v=1"></script>
 <script src="guest-names.js?v=1"></script>
-<script src="hebrew-ui.js?v=3"></script>
+<script src="hebrew-ui.js?v=4"></script>
 <script src="tab-behavior.js?v=2"></script>
 <script src="old-night-header.js?v=1"></script>
 <script src="start-night-modal.js?v=1"></script>
