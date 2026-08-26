@@ -9,7 +9,6 @@
     #nightSetupScreen h2{text-align:center}
     #nightSetupScreen .customPlayerBox{text-align:center}
     #nightSetupScreen #nightDate{display:block;margin-top:6px}
-    #moneyTab> .card:first-child h2{font-size:27px;text-align:center}
     #moneyTab> .card:first-child .muted{text-align:center;direction:rtl}
     #moneyTab .moneyName{text-align:right;direction:rtl;font-size:18px}
     #moneyTab .moneyRow>div:first-child{text-align:right;direction:rtl}
@@ -25,7 +24,6 @@
   const welcomeTitle=document.querySelector('#welcomeScreen .heroTitle');
   if(welcomeTitle)welcomeTitle.textContent='קבוצת חארבו דארבו';
 
-  // Prevent the password field from lingering/flashing after ENTER is pressed.
   const loginBtn=document.getElementById('loginBtn');
   const accessInput=document.getElementById('accessCodeInput');
   if(loginBtn&&accessInput){
@@ -35,7 +33,6 @@
     });
   }
 
-  // Translate main navigation buttons.
   document.querySelectorAll('.tab').forEach(btn=>{
     if(btn.dataset.tab==='gameTab')btn.textContent='משחק';
     if(btn.dataset.tab==='moneyTab')btn.textContent='ריבאיים';
@@ -132,7 +129,7 @@
     const head=money.querySelector(':scope > .card:first-child');
     if(head){
       const h2=head.querySelector('h2');
-      if(h2)h2.textContent='ריבאיים – קנייה וסוף הערב';
+      if(h2)h2.remove();
       const sub=head.querySelector('.muted');
       if(sub)sub.textContent='כל ריבאיי = 25 ₪.';
     }
@@ -157,7 +154,6 @@
       if(label)label.textContent=' סה"כ בקופה';
     }
 
-    // Put the total pot first and the rebuy count second.
     if(totalCost&&totalRebuys){
       const grid=totalCost.parentElement?.parentElement;
       const costStat=totalCost.parentElement;
@@ -178,7 +174,6 @@
   }
   translateMoneyScreen();
 
-  // After starting a valid night, go directly to Rebuys instead of Game.
   const startNightBtn=document.getElementById('startNightBtn');
   if(startNightBtn&&typeof startNightBtn.onclick==='function'){
     const originalStartNight=startNightBtn.onclick;
