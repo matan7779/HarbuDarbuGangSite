@@ -7,8 +7,32 @@
     #moneySummary th:last-child,#moneySummary td:last-child{
       direction:ltr;unicode-bidi:isolate;text-align:right
     }
+    .hdgShareNotice{position:fixed;inset:0;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:300}
+    .hdgShareNoticeCard{width:min(430px,92vw);background:linear-gradient(180deg,#172033 0%,#0f172a 100%);border:1px solid rgba(56,189,248,.28);border-radius:24px;padding:26px 24px;text-align:center;box-shadow:0 26px 80px rgba(0,0,0,.5);direction:rtl}
+    .hdgShareNoticeIcon{width:68px;height:68px;margin:0 auto 14px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.24);font-size:34px}
+    .hdgShareNoticeTitle{font-size:25px;font-weight:900;margin-bottom:8px}
+    .hdgShareNoticeText{font-size:15px;line-height:1.55;color:#cbd5e1;margin-bottom:20px}
+    .hdgShareNoticeCard button{margin:0;min-height:46px}
   `;
   document.head.appendChild(style);
+
+  function showNotice(title,text,ok=true){
+    document.getElementById('hdgShareNotice')?.remove();
+    const box=document.createElement('div');
+    box.id='hdgShareNotice';box.className='hdgShareNotice';
+    box.innerHTML=`<div class="hdgShareNoticeCard" role="dialog" aria-modal="true" aria-label="${ok?'הודעה':'שגיאה'}">
+      <div class="hdgShareNoticeIcon">${ok?'✓':'!'}</div>
+      <div class="hdgShareNoticeTitle"></div>
+      <div class="hdgShareNoticeText"></div>
+      <button class="${ok?'green':'secondary'}" data-close>סגור</button>
+    </div>`;
+    box.querySelector('.hdgShareNoticeTitle').textContent=title;
+    box.querySelector('.hdgShareNoticeText').textContent=text;
+    document.body.appendChild(box);
+    const close=()=>box.remove();
+    box.querySelector('[data-close]').onclick=close;
+    box.addEventListener('click',e=>{if(e.target===box)close();});
+  }
 
   function safeArray(v){return Array.isArray(v)?v:[]}
   function safeObj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{}}
@@ -48,9 +72,10 @@
     ctx.strokeStyle='rgba(148,163,184,.22)';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(70,176);ctx.lineTo(1130,176);ctx.stroke();
 
-    ctx.fillStyle='#fbbf24';ctx.font='bold 27px Arial';ctx.direction='rtl';ctx.textAlign='right';
-    ctx.fillText('שחקן',1080,225);
-    ctx.fillText('סכום',405,225);
+    const amountX=350;
+    ctx.fillStyle='#fbbf24';ctx.font='bold 27px Arial';
+    ctx.direction='rtl';ctx.textAlign='right';ctx.fillText('שחקן',1080,225);
+    ctx.textAlign='center';ctx.fillText('סכום',amountX,225);
 
     rows.forEach((r,i)=>{
       const y=285+i*rowH;
@@ -58,8 +83,8 @@
       ctx.fillText(r.name,1080,y);
 
       ctx.fillStyle=r.amount>0?'#4ade80':r.amount<0?'#f87171':'#e2e8f0';
-      ctx.font='bold 31px Arial';ctx.direction='ltr';ctx.textAlign='left';
-      ctx.fillText(fmt(r.amount),210,y);
+      ctx.font='bold 31px Arial';ctx.direction='ltr';ctx.textAlign='center';
+      ctx.fillText(fmt(r.amount),amountX,y);
 
       ctx.strokeStyle='rgba(148,163,184,.12)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(90,y+28);ctx.lineTo(1110,y+28);ctx.stroke();
@@ -74,7 +99,7 @@
       try{await navigator.share({files:[file],title:'קבוצת חארבו דארבו'});return}catch(e){if(e.name==='AbortError')return}
     }
     const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
-    alert('הדפדפן לא תומך בשיתוף תמונה ישיר, לכן קובץ ה-JPG הורד למכשיר.');
+    showNotice('התמונה נשמרה','הדפדפן לא תומך בשיתוף תמונה ישיר, לכן התמונה נשמרה למכשיר.');
   }
 
   async function copyNight(raw){
@@ -84,8 +109,10 @@
       const img=await createImageBitmap(blob),c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);
       const png=await new Promise(resolve=>c.toBlob(resolve,'image/png'));
       await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);
-      alert('התמונה הועתקה. אפשר להדביק אותה ישירות ב-WhatsApp Web.');
-    }catch(e){alert('הדפדפן הזה לא תומך בהעתקת תמונה ישירות. השתמש בכפתור שיתוף JPG.');}
+      showNotice('התמונה הועתקה','אפשר עכשיו להדביק אותה ישירות ב-WhatsApp Web.');
+    }catch(e){
+      showNotice('לא ניתן להעתיק את התמונה','הדפדפן הזה לא תומך בהעתקת תמונה ישירות. אפשר להשתמש בכפתור השיתוף.',false);
+    }
   }
 
   function currentNight(){try{return {...state,night_date:state.date}}catch(e){return {}}}
