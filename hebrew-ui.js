@@ -1,4 +1,4 @@
-/* Small Hebrew UI polish for login, welcome, player selection and rebuys screens. */
+/* Small Hebrew UI polish for login, welcome, player selection, rebuys and game screens. */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
@@ -14,6 +14,11 @@
     #moneyTab .moneyName{text-align:right;direction:rtl;font-size:18px}
     #moneyTab .moneyRow>div:first-child{text-align:right;direction:rtl}
     #moneyTab .moneyRow>div:first-child .muted{text-align:right;direction:rtl}
+    #gameTab{direction:rtl}
+    #gameTab #homeView .card,#gameTab #gameSetupView .card{text-align:right}
+    #gameTab #homeView h2,#gameTab #gameSetupView h2{text-align:right}
+    #gameTab #rulesList{text-align:right;direction:rtl}
+    #gameTab #currentGameView .card,#gameTab #winnerView .card{text-align:center}
   `;
   document.head.appendChild(style);
 
@@ -30,10 +35,12 @@
     });
   }
 
-  // Translate the requested main navigation buttons.
+  // Translate main navigation buttons.
   document.querySelectorAll('.tab').forEach(btn=>{
+    if(btn.dataset.tab==='gameTab')btn.textContent='משחק';
     if(btn.dataset.tab==='moneyTab')btn.textContent='ריבאיים';
     if(btn.dataset.tab==='statsTab')btn.textContent='סטטיסטיקות';
+    if(btn.dataset.tab==='closeTab')btn.textContent='סיום ערב';
     if(btn.dataset.tab==='oldNightsTab')btn.textContent='ערבים קודמים';
   });
 
@@ -81,6 +88,42 @@
     };
   }
   translateCustomPlayerBox();
+
+  function translateGameScreen(){
+    const game=document.getElementById('gameTab');
+    if(!game)return;
+    game.setAttribute('dir','rtl');
+
+    const homeTitle=document.querySelector('#homeView h2');
+    if(homeTitle)homeTitle.textContent='שחקני הערב';
+    const editPlayers=document.getElementById('editPlayersBtn');
+    if(editPlayers)editPlayers.textContent='הוסף / הסר שחקנים';
+    const newGame=document.getElementById('newGameBtn');
+    if(newGame)newGame.textContent='משחק חדש';
+
+    const setupTitles=document.querySelectorAll('#gameSetupView h2');
+    if(setupTitles[0])setupTitles[0].textContent='בחר משחק';
+    if(setupTitles[1])setupTitles[1].textContent='בחר חוקים';
+    const startGame=document.getElementById('startGameBtn');
+    if(startGame)startGame.textContent='התחל משחק';
+    const cancelGame=document.getElementById('cancelGameBtn');
+    if(cancelGame)cancelGame.textContent='ביטול';
+
+    const currentTitle=document.querySelector('#currentGameView h2');
+    if(currentTitle)currentTitle.textContent='המשחק הנוכחי';
+    const endGame=document.getElementById('endGameBtn');
+    if(endGame)endGame.textContent='סיום משחק';
+
+    const winnerTitle=document.querySelector('#winnerView h2');
+    if(winnerTitle)winnerTitle.textContent='בחר מנצח/ים';
+    const winnerHelp=document.querySelector('#winnerView .muted');
+    if(winnerHelp)winnerHelp.textContent='ניתן לבחור יותר משחקן אחד לחלוקת הקופה.';
+    const saveWinner=document.getElementById('saveWinnerBtn');
+    if(saveWinner)saveWinner.textContent='שמור תוצאה';
+    const winnerBack=document.getElementById('winnerBackBtn');
+    if(winnerBack)winnerBack.textContent='חזרה';
+  }
+  translateGameScreen();
 
   function translateMoneyScreen(){
     const money=document.getElementById('moneyTab');
