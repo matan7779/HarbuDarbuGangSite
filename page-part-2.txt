@@ -7,6 +7,7 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 .loginBox{max-width:430px;margin:0 auto}
+.loginBox .heroTitle{font-size:clamp(26px,5vw,38px)}
 .codeInput{width:100%;padding:13px;background:#fff;color:#111827;border-radius:12px;border:none;font-size:18px;letter-spacing:2px;text-align:center}
 .loginError{color:#fca5a5;font-size:13px;margin-top:8px}
 .roomCode{font-size:24px;font-weight:900;letter-spacing:3px}
@@ -30,7 +31,7 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
 <section id="loginScreen" dir="rtl">
   <div class="card loginBox">
     <img class="heroImg" src="hero.svg" alt="שולחן פוקר">
-    <div class="heroTitle">חארבו בארבו בפרדס חנה</div>
+    <div class="heroTitle">חארבו דארבו בפרדס חנה</div>
     <div class="heroSub">הכנס את קוד הכניסה לקבוצה</div>
     <input id="accessCodeInput" class="codeInput" type="password" placeholder="קוד כניסה" autocomplete="off">
     <button class="primary" id="loginBtn">כניסה</button>
@@ -38,15 +39,15 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
   </div>
 </section>
 
-<section id="welcomeScreen" class="hidden">
+<section id="welcomeScreen" class="hidden" dir="rtl">
   <div class="card">
-    <img class="heroImg" src="hero.svg" alt="Poker table">
-    <div class="heroTitle">Harbu Darbu Gang</div>
-    <div class="heroSub">Game night controller, projector display, rebuys and history.</div>
-    <button class="primary" id="startControlBtn">START / CONTROL NIGHT</button>
-    <button class="secondary" id="projectorBtn">PROJECTOR DISPLAY</button>
-    <button class="secondary" id="oldNightsBtn">OLD NIGHTS</button>
-    <button class="ghost" id="logoutBtn">LOG OUT</button>
+    <img class="heroImg" src="hero.svg" alt="שולחן פוקר">
+    <div class="heroTitle">קבוצת חארבו דארבו</div>
+    <div class="heroSub">ניהול ערב משחקים, תצוגת מקרן, ריבאיים והיסטוריה.</div>
+    <button class="primary" id="startControlBtn">התחל / נהל ערב</button>
+    <button class="secondary" id="projectorBtn">תצוגת מקרן</button>
+    <button class="secondary" id="oldNightsBtn">ערבים קודמים</button>
+    <button class="ghost" id="logoutBtn">יציאה</button>
   </div>
 </section>
 
