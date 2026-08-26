@@ -5,16 +5,12 @@
     if(!tab||tab.classList.contains('hidden'))return;
 
     const list=document.getElementById('oldNightsList');
-    const gamesTop=document.getElementById('gamesTop');
     const chip=document.querySelector('#mainApp .topbar .chip');
-    if(!list||!gamesTop||!chip)return;
+    if(!list||!chip)return;
 
     const nights=list.querySelectorAll('.archiveItem').length;
-    gamesTop.textContent=String(nights);
     chip.setAttribute('dir','rtl');
-    Array.from(chip.childNodes).forEach(node=>{
-      if(node.nodeType===3)node.textContent=' סה"כ ערבי פוקר:';
-    });
+    chip.innerHTML=`סה"כ ערבי פוקר: <span id="gamesTop" dir="ltr">${nights}</span>`;
   }
 
   const previous=window.loadOldNights;
