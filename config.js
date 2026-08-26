@@ -7,7 +7,7 @@ if(/(?:^|\/)p\.html$/.test(location.pathname)){
   media.src='aviv-special-media.js?v=1';
   media.onload=()=>{
     const hook=document.createElement('script');
-    hook.src='p-aviv-special.js?v=1';
+    hook.src='p-aviv-special.js?v=2';
     document.head.appendChild(hook);
   };
   document.head.appendChild(media);
