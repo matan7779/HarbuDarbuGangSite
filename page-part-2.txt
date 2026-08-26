@@ -27,13 +27,13 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
 <body>
 <div class="app">
 
-<section id="loginScreen">
+<section id="loginScreen" dir="rtl">
   <div class="card loginBox">
-    <img class="heroImg" src="hero.svg" alt="Poker table">
-    <div class="heroTitle">Harbu Darbu Gang</div>
-    <div class="heroSub">Enter the group access code.</div>
-    <input id="accessCodeInput" class="codeInput" type="password" placeholder="Access Code" autocomplete="off">
-    <button class="primary" id="loginBtn">ENTER</button>
+    <img class="heroImg" src="hero.svg" alt="שולחן פוקר">
+    <div class="heroTitle">חארבו בארבו בפרדס חנה</div>
+    <div class="heroSub">הכנס את קוד הכניסה לקבוצה</div>
+    <input id="accessCodeInput" class="codeInput" type="password" placeholder="קוד כניסה" autocomplete="off">
+    <button class="primary" id="loginBtn">כניסה</button>
     <div id="loginError" class="loginError"></div>
   </div>
 </section>
