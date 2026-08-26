@@ -27,7 +27,7 @@
 
   const projectorBtn=document.getElementById('projectorBtn');
   if(projectorBtn){
-    projectorBtn.textContent='PROJECTOR DISPLAY — CURRENT NIGHT';
+    projectorBtn.textContent='תצוגת מקרן';
     projectorBtn.onclick=connectCurrentNight;
   }
 
