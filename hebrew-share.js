@@ -27,7 +27,9 @@
       <button class="${ok?'green':'secondary'}" data-close>סגור</button>
     </div>`;
     box.querySelector('.hdgShareNoticeTitle').textContent=title;
-    box.querySelector('.hdgShareNoticeText').textContent=text;
+    const textEl=box.querySelector('.hdgShareNoticeText');
+    textEl.textContent=text||'';
+    if(!text)textEl.style.display='none';
     document.body.appendChild(box);
     const close=()=>box.remove();
     box.querySelector('[data-close]').onclick=close;
@@ -109,7 +111,7 @@
       const img=await createImageBitmap(blob),c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);
       const png=await new Promise(resolve=>c.toBlob(resolve,'image/png'));
       await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);
-      showNotice('התמונה הועתקה','אפשר עכשיו להדביק אותה ישירות ב-WhatsApp Web.');
+      showNotice('התמונה הועתקה','');
     }catch(e){
       showNotice('לא ניתן להעתיק את התמונה','הדפדפן הזה לא תומך בהעתקת תמונה ישירות. אפשר להשתמש בכפתור השיתוף.',false);
     }
