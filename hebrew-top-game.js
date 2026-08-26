@@ -1,7 +1,7 @@
 /* Hebrew top header + compact game selection + Hebrew rule display. */
 (function(){
   const RULE_HE={
-    twoBoards:'בורדים',
+    twoBoards:'2 בורדים',
     strongBoard:'הבורד החזק לוקח',
     chiketOpenCloseOpen:'פתוח / סגור / קלפים פתוחים',
     insert3:'מכניסים 3 קלפים',
@@ -9,7 +9,7 @@
     sevenBoom:'7 בום'
   };
   const DISPLAY_HE={
-    '2 Boards':'בורדים',
+    '2 Boards':'2 בורדים',
     '1 Board Stronger':'הבורד החזק לוקח',
     'Open / Close / Open Cards':'פתוח / סגור / קלפים פתוחים',
     'Insert 3 Cards':'מכניסים 3 קלפים',
@@ -19,8 +19,20 @@
   };
   const GAME_ORDER=['chiket','pineapple','harbu','threepairs','omaha4','omaha5','texas','omaha6','yarniv','swap'];
 
+  // Shared Card is also available in Chiket, Texas, Pineapple and Yarniv.
+  const originalApplies=window.applies;
+  if(typeof originalApplies==='function'){
+    window.applies=function(r,g){
+      if(r&&r.id==='sharedCard'&&g){
+        return g.type==='omaha'||['chiket','texas','pineapple','yarniv'].includes(g.id);
+      }
+      return originalApplies(r,g);
+    };
+  }
+
   const style=document.createElement('style');
   style.textContent=`
+    #syncStatus{display:none!important}
     #gameSelect{display:none!important}
     #gameRadioList{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px;margin-top:8px;width:100%}
     .gameRadioOption{display:flex!important;align-items:center;justify-content:flex-start;gap:7px;padding:9px 8px;border:1px solid var(--line);border-radius:11px;background:rgba(30,41,59,.72);cursor:pointer;direction:rtl;text-align:right;min-height:42px;min-width:0;width:100%;overflow:hidden}
