@@ -1,2 +1,3 @@
 <script src="enhancements2.js?v=151"></script>
 <script src="hebrew-top-game.js?v=2"></script>
+<script src="hebrew-stats.js?v=1"></script>
