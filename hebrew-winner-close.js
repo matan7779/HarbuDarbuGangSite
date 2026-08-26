@@ -81,7 +81,7 @@
     const summaryTitle=closeTab.querySelector('#closeSummary')?.parentElement?.querySelector('h2');
     if(summaryTitle)summaryTitle.textContent='סיכום';
     const share=document.getElementById('shareWhatsAppBtn');
-    if(share)share.textContent='שלח JPG לוואטסאפ';
+    if(share)share.textContent='שלח תמונה לוואטסאפ';
     const finish=document.getElementById('finishNightBtn');
     if(finish)finish.textContent='סיים ערב ושמור';
     closeGamesValue=document.getElementById('closeGamesValue');
