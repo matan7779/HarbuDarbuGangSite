@@ -1,4 +1,4 @@
-/* Small Hebrew UI polish for login, welcome and player selection screens. */
+/* Small Hebrew UI polish for login, welcome, player selection and rebuys screens. */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
@@ -9,6 +9,11 @@
     #nightSetupScreen h2{text-align:center}
     #nightSetupScreen .customPlayerBox{text-align:center}
     #nightSetupScreen #nightDate{display:block;margin-top:6px}
+    #moneyTab> .card:first-child h2{font-size:27px;text-align:center}
+    #moneyTab> .card:first-child .muted{text-align:center;direction:rtl}
+    #moneyTab .moneyName{text-align:right;direction:rtl;font-size:18px}
+    #moneyTab .moneyRow>div:first-child{text-align:right;direction:rtl}
+    #moneyTab .moneyRow>div:first-child .muted{text-align:right;direction:rtl}
   `;
   document.head.appendChild(style);
 
@@ -76,6 +81,49 @@
     };
   }
   translateCustomPlayerBox();
+
+  function translateMoneyScreen(){
+    const money=document.getElementById('moneyTab');
+    if(!money)return;
+
+    const head=money.querySelector(':scope > .card:first-child');
+    if(head){
+      const h2=head.querySelector('h2');
+      if(h2)h2.textContent='ריבאיים ומשיכת כסף';
+      const sub=head.querySelector('.muted');
+      if(sub)sub.textContent='כל ריבאיי = 25 ₪. משיכת כסף משתנה בקפיצות של 25 ₪.';
+    }
+
+    money.querySelectorAll('.moneyRow').forEach(row=>{
+      const cost=row.querySelector(':scope > div:first-child .muted');
+      if(cost)cost.textContent=cost.textContent.replace(/^Rebuy cost:\s*/,'עלות ריבאיים: ');
+      row.querySelectorAll('.centerMuted').forEach(label=>{
+        if(label.textContent.trim()==='Rebuys')label.textContent='ריבאיים';
+        if(label.textContent.trim()==='Cash out')label.textContent='משיכת כסף';
+      });
+    });
+
+    const totalRebuys=document.getElementById('totalRebuys');
+    if(totalRebuys&&totalRebuys.parentElement){
+      const label=totalRebuys.nextSibling;
+      if(label)label.textContent=' ריבאיים';
+    }
+    const totalCost=document.getElementById('totalRebuyCost');
+    if(totalCost&&totalCost.parentElement){
+      const label=totalCost.nextSibling;
+      if(label)label.textContent=' עלות ריבאיים';
+    }
+  }
+
+  const originalRenderMoney=window.renderMoney;
+  if(typeof originalRenderMoney==='function'){
+    window.renderMoney=function(){
+      const result=originalRenderMoney.apply(this,arguments);
+      translateMoneyScreen();
+      return result;
+    };
+  }
+  translateMoneyScreen();
 
   // After starting a valid night, go directly to Rebuys instead of Game.
   const startNightBtn=document.getElementById('startNightBtn');
