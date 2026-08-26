@@ -1,9 +1,26 @@
 /* Hebrew Old Nights page + historical games total in the top counter. */
 (function(){
+  const RULE_HE={
+    '2 Boards':'בורדים',
+    '1 Board Stronger':'הבורד החזק לוקח',
+    'Open / Close / Open Cards':'פתוח / סגור / קלפים פתוחים',
+    'Insert 3 Cards':'מכניסים 3 קלפים',
+    'Shared Card':'קלף משותף',
+    '7 Boom':'7 בום',
+    'Regular':'רגיל'
+  };
+
   function setArchiveHeader(active){
     const games=document.querySelector('#mainApp .topbar .chip');
     const room=document.getElementById('roomTop');
-    if(games)games.style.display='';
+    if(games){
+      games.style.display='';
+      games.setAttribute('dir','rtl');
+      const gamesTop=document.getElementById('gamesTop');
+      if(gamesTop){
+        Array.from(games.childNodes).forEach(node=>{if(node.nodeType===3)node.textContent=' סה"כ משחקים';});
+      }
+    }
     if(room)room.style.display=active?'none':'';
   }
 
@@ -61,6 +78,69 @@
 
     const gamesTop=document.getElementById('gamesTop');
     if(gamesTop)gamesTop.textContent=String(totalGames);
+    setArchiveHeader(true);
+  }
+
+  function replaceText(el,from,to){if(el&&el.textContent.trim()===from)el.textContent=to;}
+
+  function translateFullStatsOverlay(){
+    const overlay=document.getElementById('nightDetailsOverlay');
+    if(!overlay||overlay.classList.contains('hidden'))return;
+    overlay.setAttribute('dir','rtl');
+
+    const header=overlay.querySelector('.nightOverlayHeader');
+    if(header){
+      const meta=header.querySelector('.muted');
+      if(meta){
+        const m=meta.textContent.trim().match(/^(\d+)\s+games\s*·\s*(\d+)\s+players/i);
+        if(m)meta.textContent=`${m[1]} משחקים · ${m[2]} שחקנים`;
+      }
+      const close=document.getElementById('closeNightOverlay');
+      if(close)close.textContent='סגור';
+    }
+
+    overlay.querySelectorAll('.fullStatsCard h2').forEach(h=>{
+      const t=h.textContent.trim();
+      if(t==='Night Stats')h.textContent='סטטיסטיקות הערב';
+      else if(t==='Money Summary')h.textContent='סיכום כספי';
+      else if(t==='Wins')h.textContent='ניצחונות';
+      else if(t==='Game Types')h.textContent='סוגי משחקים';
+      else if(/^Game History \(\d+\)$/.test(t))h.textContent=t.replace('Game History','היסטוריית משחקים');
+    });
+
+    overlay.querySelectorAll('.stat').forEach(stat=>{
+      Array.from(stat.childNodes).forEach(node=>{
+        if(node.nodeType!==3)return;
+        const t=node.textContent.trim();
+        if(t==='Games')node.textContent=' משחקים';
+        if(t==='Players')node.textContent=' שחקנים';
+      });
+    });
+
+    overlay.querySelectorAll('th').forEach(th=>{
+      const t=th.textContent.trim();
+      if(t==='Player')th.textContent='שחקן';
+      if(t==='Result')th.textContent='סכום';
+    });
+
+    overlay.querySelectorAll('.muted').forEach(el=>{
+      const t=el.textContent.trim();
+      if(t==='No winners recorded.')el.textContent='לא נרשמו מנצחים.';
+      else if(t==='No games')el.textContent='אין משחקים';
+      else if(t==='No games.')el.textContent='אין משחקים.';
+      else{
+        let translated=t;
+        Object.entries(RULE_HE).forEach(([en,he])=>{translated=translated.split(en).join(he);});
+        if(translated!==t)el.textContent=translated;
+      }
+    });
+
+    overlay.querySelectorAll('.archiveMetaStrong').forEach(el=>{
+      if(el.textContent.trim().startsWith('Winner:'))el.textContent=el.textContent.replace(/^Winner:/,'מנצח:');
+    });
+
+    replaceText(document.getElementById('shareOldNight'),'SHARE JPG','שתף JPG');
+    replaceText(document.getElementById('copyOldNight'),'COPY JPG','העתק JPG');
   }
 
   translateStaticArchive();
@@ -95,6 +175,13 @@
       setArchiveHeader(true);
       translateStaticArchive();
     },0));
+  }
+
+  const list=document.getElementById('oldNightsList');
+  if(list){
+    list.addEventListener('click',e=>{
+      if(e.target.closest('[data-details]'))setTimeout(translateFullStatsOverlay,0);
+    });
   }
 
   const newNightBtn=document.getElementById('newNightFromArchiveBtn');
