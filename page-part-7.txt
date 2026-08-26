@@ -2,6 +2,7 @@
 <script src="projector-easy.js?v=1"></script>
 <script src="guest-names.js?v=1"></script>
 <script src="hebrew-ui.js?v=5"></script>
+<script src="hebrew-top-game.js?v=1"></script>
 <script src="tab-behavior.js?v=2"></script>
 <script src="old-night-header.js?v=1"></script>
 <script src="start-night-modal.js?v=1"></script>
