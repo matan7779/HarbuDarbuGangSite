@@ -64,7 +64,7 @@
       const details=item.querySelector('[data-details]');
       if(details)details.textContent='פתח סטטיסטיקה מלאה';
       const share=item.querySelector('[data-share]');
-      if(share)share.textContent='שתף JPG';
+      if(share)share.textContent='שתף תמונה';
       const copy=item.querySelector('[data-copy]');
       if(copy)copy.textContent='העתק תמונה';
     });
@@ -139,7 +139,7 @@
       if(el.textContent.trim().startsWith('Winner:'))el.textContent=el.textContent.replace(/^Winner:/,'מנצח:');
     });
 
-    replaceText(document.getElementById('shareOldNight'),'SHARE JPG','שתף JPG');
+    replaceText(document.getElementById('shareOldNight'),'SHARE JPG','שתף תמונה');
     replaceText(document.getElementById('copyOldNight'),'COPY JPG','העתק תמונה');
   }
 
