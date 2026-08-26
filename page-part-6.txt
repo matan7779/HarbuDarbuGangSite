@@ -13,7 +13,7 @@ el("loginBtn").onclick=async()=>{
   try{
     if(await verifyAccess(el("accessCodeInput").value)){
       showScreen("welcomeScreen");
-    }else el("loginError").textContent="Wrong access code.";
+    }else el("loginError").textContent="קוד הכניסה שגוי";
   }catch(e){el("loginError").textContent=e.message;}
 };
 el("accessCodeInput").addEventListener("keydown",e=>{if(e.key==="Enter")el("loginBtn").click();});
