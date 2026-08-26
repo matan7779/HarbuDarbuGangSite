@@ -1,6 +1,6 @@
 /* Harbu Darbu Gang - custom guest/player names */
 (function(){
-  const BASE_PLAYERS=["Matan","Zafrir","Guy","Aliyahu","MR Zucker","Aviv","Doron","Oren","Hagai","Beny","Amir"];
+  const BASE_PLAYERS=["מתן","צפריר","גיא","אליהו","מר צוקר","אביב","דורון","אורן","חגי","בני","אמיר"];
 
   const style=document.createElement('style');
   style.textContent=`
