@@ -89,17 +89,17 @@
     const head=money.querySelector(':scope > .card:first-child');
     if(head){
       const h2=head.querySelector('h2');
-      if(h2)h2.textContent='ריבאיים ומשיכת כסף';
+      if(h2)h2.textContent='ריבאיים – קנייה וסוף הערב';
       const sub=head.querySelector('.muted');
-      if(sub)sub.textContent='כל ריבאיי = 25 ₪. משיכת כסף משתנה בקפיצות של 25 ₪.';
+      if(sub)sub.textContent='כל ריבאיי = 25 ₪.';
     }
 
     money.querySelectorAll('.moneyRow').forEach(row=>{
       const cost=row.querySelector(':scope > div:first-child .muted');
       if(cost)cost.textContent=cost.textContent.replace(/^Rebuy cost:\s*/,'עלות ריבאיים: ');
       row.querySelectorAll('.centerMuted').forEach(label=>{
-        if(label.textContent.trim()==='Rebuys')label.textContent='ריבאיים';
-        if(label.textContent.trim()==='Cash out')label.textContent='משיכת כסף';
+        if(label.textContent.trim()==='Rebuys' || label.textContent.trim()==='ריבאיים')label.textContent='ריבאיים קנייה';
+        if(label.textContent.trim()==='Cash out' || label.textContent.trim()==='משיכת כסף')label.textContent='ריבאיים - סוף הערב';
       });
     });
 
@@ -111,7 +111,17 @@
     const totalCost=document.getElementById('totalRebuyCost');
     if(totalCost&&totalCost.parentElement){
       const label=totalCost.nextSibling;
-      if(label)label.textContent=' עלות ריבאיים';
+      if(label)label.textContent=' סה"כ בקופה';
+    }
+
+    // Put the total pot first and the rebuy count second.
+    if(totalCost&&totalRebuys){
+      const grid=totalCost.parentElement?.parentElement;
+      const costStat=totalCost.parentElement;
+      const rebuyStat=totalRebuys.parentElement;
+      if(grid&&costStat&&rebuyStat&&costStat.parentElement===grid&&rebuyStat.parentElement===grid){
+        grid.insertBefore(costStat,rebuyStat);
+      }
     }
   }
 
