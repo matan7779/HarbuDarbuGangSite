@@ -1,7 +1,7 @@
 /* Hebrew Old Nights page + historical games total in the top counter. */
 (function(){
   const RULE_HE={
-    '2 Boards':'בורדים',
+    '2 Boards':'2 בורדים',
     '1 Board Stronger':'הבורד החזק לוקח',
     'Open / Close / Open Cards':'פתוח / סגור / קלפים פתוחים',
     'Insert 3 Cards':'מכניסים 3 קלפים',
@@ -66,7 +66,7 @@
       const share=item.querySelector('[data-share]');
       if(share)share.textContent='שתף JPG';
       const copy=item.querySelector('[data-copy]');
-      if(copy)copy.textContent='העתק JPG';
+      if(copy)copy.textContent='העתק תמונה';
     });
 
     const muted=list.querySelector(':scope > .card .muted');
@@ -140,7 +140,7 @@
     });
 
     replaceText(document.getElementById('shareOldNight'),'SHARE JPG','שתף JPG');
-    replaceText(document.getElementById('copyOldNight'),'COPY JPG','העתק JPG');
+    replaceText(document.getElementById('copyOldNight'),'COPY JPG','העתק תמונה');
   }
 
   translateStaticArchive();
