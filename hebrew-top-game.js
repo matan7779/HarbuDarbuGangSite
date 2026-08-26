@@ -22,10 +22,10 @@
   const style=document.createElement('style');
   style.textContent=`
     #gameSelect{display:none!important}
-    #gameRadioList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
-    .gameRadioOption{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:9px 9px;border:1px solid var(--line);border-radius:11px;background:rgba(30,41,59,.72);cursor:pointer;direction:rtl;text-align:right;min-height:42px}
+    #gameRadioList{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px;margin-top:8px;width:100%}
+    .gameRadioOption{display:flex!important;align-items:center;justify-content:flex-start;gap:7px;padding:9px 8px;border:1px solid var(--line);border-radius:11px;background:rgba(30,41,59,.72);cursor:pointer;direction:rtl;text-align:right;min-height:42px;min-width:0;width:100%;overflow:hidden}
     .gameRadioOption input{width:17px;height:17px;margin:0;accent-color:#38bdf8;flex:0 0 auto}
-    .gameRadioOption span{direction:ltr;unicode-bidi:embed;font-weight:800;font-size:13.5px;white-space:nowrap}
+    .gameRadioOption span{direction:ltr;unicode-bidi:embed;font-weight:800;font-size:12.5px;line-height:1.2;white-space:normal;overflow-wrap:anywhere;min-width:0}
     #rulesList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     #rulesList .rule{margin-bottom:0;min-height:44px;padding:9px 10px;font-size:14px}
     #rulesList .rule.ruleWide{grid-column:1 / -1}
