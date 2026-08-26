@@ -13,7 +13,7 @@
     gamesTop.textContent=String(nights);
     chip.setAttribute('dir','rtl');
     Array.from(chip.childNodes).forEach(node=>{
-      if(node.nodeType===3)node.textContent=' סה"כ ערבים';
+      if(node.nodeType===3)node.textContent=' סה"כ ערבי פוקר:';
     });
   }
 
