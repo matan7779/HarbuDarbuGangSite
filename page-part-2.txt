@@ -43,8 +43,7 @@ font-size:clamp(18px,2.2vw,30px);color:var(--muted)}
   <div class="card">
     <img class="heroImg" src="hero.svg" alt="שולחן פוקר">
     <div class="heroTitle">קבוצת חארבו דארבו</div>
-    <div class="heroSub">ניהול ערב משחקים, תצוגת מקרן, ריבאיים והיסטוריה.</div>
-    <button class="primary" id="startControlBtn">התחל / נהל ערב</button>
+    <button class="primary" id="startControlBtn">התחל משחק חדש</button>
     <button class="secondary" id="projectorBtn">תצוגת מקרן</button>
     <button class="secondary" id="oldNightsBtn">ערבים קודמים</button>
     <button class="ghost" id="logoutBtn">יציאה</button>
