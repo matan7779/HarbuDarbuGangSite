@@ -1,31 +1,31 @@
 /* Hebrew top header + compact game selection + Hebrew rule display. */
 (function(){
   const RULE_HE={
-    twoBoards:'2 לוחות',
-    strongBoard:'לוח אחד חזק יותר',
+    twoBoards:'בורדים',
+    strongBoard:'הבורד החזק לוקח',
     chiketOpenCloseOpen:'פתוח / סגור / קלפים פתוחים',
-    insert3:'הוסף 3 קלפים',
+    insert3:'מכניסים 3 קלפים',
     sharedCard:'קלף משותף',
     sevenBoom:'7 בום'
   };
   const DISPLAY_HE={
-    '2 Boards':'2 לוחות',
-    '1 Board Stronger':'לוח אחד חזק יותר',
+    '2 Boards':'בורדים',
+    '1 Board Stronger':'הבורד החזק לוקח',
     'Open / Close / Open Cards':'פתוח / סגור / קלפים פתוחים',
-    'Insert 3 Cards':'הוסף 3 קלפים',
+    'Insert 3 Cards':'מכניסים 3 קלפים',
     'Shared Card':'קלף משותף',
     '7 Boom':'7 בום',
     'Regular':'רגיל'
   };
+  const GAME_ORDER=['chiket','pineapple','harbu','threepairs','omaha4','omaha5','texas','omaha6','yarniv','swap'];
 
   const style=document.createElement('style');
   style.textContent=`
     #gameSelect{display:none!important}
     #gameRadioList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
-    .gameRadioOption{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:rgba(30,41,59,.72);cursor:pointer;direction:rtl;text-align:right;min-height:42px}
-    .gameRadioOption.gameWide{grid-column:1 / -1}
+    .gameRadioOption{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:9px 9px;border:1px solid var(--line);border-radius:11px;background:rgba(30,41,59,.72);cursor:pointer;direction:rtl;text-align:right;min-height:42px}
     .gameRadioOption input{width:17px;height:17px;margin:0;accent-color:#38bdf8;flex:0 0 auto}
-    .gameRadioOption span{direction:ltr;unicode-bidi:embed;font-weight:800;font-size:14px}
+    .gameRadioOption span{direction:ltr;unicode-bidi:embed;font-weight:800;font-size:13.5px;white-space:nowrap}
     #rulesList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     #rulesList .rule{margin-bottom:0;min-height:44px;padding:9px 10px;font-size:14px}
     #rulesList .rule.ruleWide{grid-column:1 / -1}
@@ -74,10 +74,13 @@
     const wrap=document.createElement('div');
     wrap.id='gameRadioList';
 
-    Array.from(select.options).forEach(opt=>{
+    const options=Array.from(select.options);
+    const byId=new Map(options.map(opt=>[opt.value,opt]));
+    const ordered=[...GAME_ORDER.map(id=>byId.get(id)).filter(Boolean),...options.filter(opt=>!GAME_ORDER.includes(opt.value))];
+
+    ordered.forEach(opt=>{
       const label=document.createElement('label');
-      const isShort=opt.textContent.trim().length<=10;
-      label.className='gameRadioOption'+(isShort?'':' gameWide');
+      label.className='gameRadioOption';
 
       const radio=document.createElement('input');
       radio.type='radio';
@@ -111,7 +114,7 @@
       const txt=RULE_HE[rule.id]||rule.label;
       const textNode=Array.from(row.childNodes).find(n=>n.nodeType===3);
       if(textNode)textNode.textContent=txt;
-      row.classList.toggle('ruleWide',txt.length>14);
+      row.classList.toggle('ruleWide',txt.length>18);
       row.setAttribute('dir','rtl');
     });
   }
