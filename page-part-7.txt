@@ -9,3 +9,4 @@
 <script src="close-night-modal.js?v=2"></script>
 <script src="delete-night-modal.js?v=1"></script>
 <script src="hebrew-winner-close.js?v=2"></script>
+<script src="hebrew-share.js?v=1"></script>
