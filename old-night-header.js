@@ -108,6 +108,15 @@
       else if(/^Game History \(\d+\)$/.test(t))h.textContent=t.replace('Game History','היסטוריית משחקים');
     });
 
+    const winsTable=overlay.querySelector('.winsTable');
+    if(winsTable){
+      winsTable.style.width='auto';
+      winsTable.style.minWidth='220px';
+      winsTable.style.marginRight='0';
+      winsTable.style.marginLeft='auto';
+      winsTable.querySelectorAll('td').forEach(td=>td.style.textAlign='right');
+    }
+
     overlay.querySelectorAll('.stat').forEach(stat=>{
       Array.from(stat.childNodes).forEach(node=>{
         if(node.nodeType!==3)return;
