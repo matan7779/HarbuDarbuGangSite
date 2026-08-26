@@ -10,6 +10,7 @@
     #closeGamesCard .closeGamesNumber{font-size:30px;font-weight:900;line-height:1.1}
     #closeGamesCard .closeGamesLabel{margin-top:5px;font-size:15px;color:var(--muted)}
     #closeSummary th,#closeSummary td{text-align:right}
+    #closeSummary th:last-child,#closeSummary td:last-child{direction:ltr;unicode-bidi:isolate;text-align:right}
   `;
   document.head.appendChild(style);
 
@@ -98,7 +99,7 @@
     summary.querySelectorAll('th').forEach(th=>{
       const t=th.textContent.trim();
       if(t==='Player')th.textContent='שחקן';
-      if(t==='Result')th.textContent='תוצאה';
+      if(t==='Result'||t==='תוצאה')th.textContent='סכום';
       if(t==='Rebuys')th.textContent='ריבאיים';
     });
   }
